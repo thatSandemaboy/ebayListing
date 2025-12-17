@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '@/lib/store';
 import { cn } from '@/lib/utils';
-import { Package, Search, RefreshCw, CheckCircle2, Clock, ChevronRight, ChevronDown, MoreHorizontal, Filter, Trash2, Download, Share2, X, Globe, Layers } from 'lucide-react';
+import { Package, Search, RefreshCw, CheckCircle2, Clock, ChevronRight, ChevronDown, MoreHorizontal, Filter, Trash2, Download, Share2, X, Globe, Layers, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -43,6 +43,24 @@ export function InventoryTable() {
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [isBulkExportOpen, setIsBulkExportOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+  const [sortColumn, setSortColumn] = useState<'name' | 'condition' | 'status' | 'listed' | 'lastUpdated' | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  const toggleSort = (column: typeof sortColumn) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
+  const getSortIcon = (column: typeof sortColumn) => {
+    if (sortColumn !== column) return <ArrowUpDown className="w-3 h-3 ml-1 opacity-50" />;
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="w-3 h-3 ml-1" /> 
+      : <ArrowDown className="w-3 h-3 ml-1" />;
+  };
 
   const filteredItems = items.filter(item => {
     const matchesFilter = filter === 'all' || item.status === filter;
@@ -51,7 +69,41 @@ export function InventoryTable() {
     return matchesFilter && matchesSearch;
   });
 
-  const groupedBySku = filteredItems.reduce((acc, item) => {
+  const sortedItems = [...filteredItems].sort((a, b) => {
+    if (!sortColumn) return 0;
+    
+    let aVal: any, bVal: any;
+    switch (sortColumn) {
+      case 'name':
+        aVal = a.name.toLowerCase();
+        bVal = b.name.toLowerCase();
+        break;
+      case 'condition':
+        aVal = a.condition.toLowerCase();
+        bVal = b.condition.toLowerCase();
+        break;
+      case 'status':
+        aVal = a.status;
+        bVal = b.status;
+        break;
+      case 'listed':
+        aVal = a.listed ? 1 : 0;
+        bVal = b.listed ? 1 : 0;
+        break;
+      case 'lastUpdated':
+        aVal = new Date(a.lastUpdated).getTime();
+        bVal = new Date(b.lastUpdated).getTime();
+        break;
+      default:
+        return 0;
+    }
+    
+    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
+
+  const groupedBySku = sortedItems.reduce((acc, item) => {
     const sku = item.sku;
     if (!acc[sku]) {
       acc[sku] = [];
@@ -270,11 +322,51 @@ export function InventoryTable() {
                 />
               </TableHead>
               <TableHead className="w-[80px]">Image</TableHead>
-              <TableHead className="min-w-[300px]">Product Details</TableHead>
-              <TableHead>Condition</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="w-[120px]">Listed</TableHead>
-              <TableHead>Last Updated</TableHead>
+              <TableHead 
+                className="min-w-[300px] cursor-pointer hover:bg-muted/80 select-none"
+                onClick={() => toggleSort('name')}
+              >
+                <div className="flex items-center">
+                  Product Details
+                  {getSortIcon('name')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/80 select-none"
+                onClick={() => toggleSort('condition')}
+              >
+                <div className="flex items-center">
+                  Condition
+                  {getSortIcon('condition')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/80 select-none"
+                onClick={() => toggleSort('status')}
+              >
+                <div className="flex items-center">
+                  Status
+                  {getSortIcon('status')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="w-[120px] cursor-pointer hover:bg-muted/80 select-none"
+                onClick={() => toggleSort('listed')}
+              >
+                <div className="flex items-center">
+                  Listed
+                  {getSortIcon('listed')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/80 select-none"
+                onClick={() => toggleSort('lastUpdated')}
+              >
+                <div className="flex items-center">
+                  Last Updated
+                  {getSortIcon('lastUpdated')}
+                </div>
+              </TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
