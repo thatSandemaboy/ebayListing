@@ -78,12 +78,15 @@ export interface WholeCellPhotosResponse {
 }
 
 export async function fetchInventories(page: number = 1, status?: string): Promise<WholeCellInventoryResponse> {
-  const params = new URLSearchParams({ page: page.toString() });
+  let url = `${BASE_URL}/inventories?page=${page}`;
   if (status) {
-    params.set('status', status);
+    // Use encodeURIComponent to properly encode the status with spaces
+    url += `&status=${encodeURIComponent(status)}`;
   }
   
-  const response = await fetch(`${BASE_URL}/inventories?${params.toString()}`, {
+  console.log('Fetching from WholeCell:', url);
+  
+  const response = await fetch(url, {
     method: 'GET',
     headers: getAuthHeaders(),
   });
