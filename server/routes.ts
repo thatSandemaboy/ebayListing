@@ -96,9 +96,19 @@ export async function registerRoutes(
 
       console.log('Starting WholeCell sync...');
       
-      // Fetch all inventories from WholeCell
-      const wholecellItems = await fetchAllInventories();
-      console.log(`Fetched ${wholecellItems.length} items from WholeCell`);
+      // Get last sync timestamp
+      const lastSyncTimestamp = await storage.getSyncMetadata('wholecell_last_sync');
+      const syncStartTime = new Date().toISOString();
+      
+      if (lastSyncTimestamp) {
+        console.log(`Last sync was at: ${lastSyncTimestamp}`);
+      } else {
+        console.log('First sync - fetching all items');
+      }
+      
+      // Fetch inventories updated since last sync (or all if first sync)
+      const wholecellItems = await fetchAllInventories('Needs eBay Draft', lastSyncTimestamp || undefined);
+      console.log(`Fetched ${wholecellItems.length} items from WholeCell${lastSyncTimestamp ? ' (updated since last sync)' : ''}`);
       
       const total = wholecellItems.length;
       let synced = 0;
@@ -106,13 +116,16 @@ export async function registerRoutes(
       
       // Handle empty result case
       if (total === 0) {
+        // Still update sync timestamp even if no new items
+        await storage.setSyncMetadata('wholecell_last_sync', syncStartTime);
         sendProgress(100, 0, 0);
         res.write(`data: ${JSON.stringify({ 
           type: 'complete', 
           success: true, 
           synced: 0, 
           errors: 0, 
-          total: 0 
+          total: 0,
+          message: lastSyncTimestamp ? 'No new updates since last sync' : 'No items to sync'
         })}\n\n`);
         res.end();
         return;
@@ -158,6 +171,9 @@ export async function registerRoutes(
       }
       
       console.log(`Sync complete: ${synced} synced, ${errors} errors`);
+      
+      // Save the sync timestamp after successful sync
+      await storage.setSyncMetadata('wholecell_last_sync', syncStartTime);
       
       // Send completion event
       res.write(`data: ${JSON.stringify({ 

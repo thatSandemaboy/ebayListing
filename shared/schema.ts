@@ -42,3 +42,13 @@ export const insertInventoryItemSchema = createInsertSchema(inventoryItems)
 
 export type InsertInventoryItem = z.infer<typeof insertInventoryItemSchema>;
 export type InventoryItem = typeof inventoryItems.$inferSelect;
+
+// Sync Metadata Table - tracks last sync timestamp
+export const syncMetadata = pgTable("sync_metadata", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export type SyncMetadata = typeof syncMetadata.$inferSelect;

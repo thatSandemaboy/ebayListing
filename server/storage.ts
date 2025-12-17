@@ -1,5 +1,5 @@
-import { type User, type InsertUser, type InventoryItem, type InsertInventoryItem } from "@shared/schema";
-import { users, inventoryItems } from "@shared/schema";
+import { type User, type InsertUser, type InventoryItem, type InsertInventoryItem, type SyncMetadata } from "@shared/schema";
+import { users, inventoryItems, syncMetadata } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { db } from "./db";
 
@@ -95,6 +95,22 @@ export class DbStorage implements IStorage {
 
   async deleteInventoryItem(id: string): Promise<void> {
     await db.delete(inventoryItems).where(eq(inventoryItems.id, id));
+  }
+
+  async getSyncMetadata(key: string): Promise<string | null> {
+    const result = await db.select().from(syncMetadata).where(eq(syncMetadata.key, key));
+    return result[0]?.value || null;
+  }
+
+  async setSyncMetadata(key: string, value: string): Promise<void> {
+    const existing = await db.select().from(syncMetadata).where(eq(syncMetadata.key, key));
+    if (existing.length > 0) {
+      await db.update(syncMetadata)
+        .set({ value, updatedAt: new Date().toISOString() })
+        .where(eq(syncMetadata.key, key));
+    } else {
+      await db.insert(syncMetadata).values({ key, value });
+    }
   }
 }
 

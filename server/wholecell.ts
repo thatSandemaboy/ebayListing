@@ -77,11 +77,13 @@ export interface WholeCellPhotosResponse {
   photos: WholeCellPhoto[];
 }
 
-export async function fetchInventories(page: number = 1, status?: string): Promise<WholeCellInventoryResponse> {
+export async function fetchInventories(page: number = 1, status?: string, updatedSince?: string): Promise<WholeCellInventoryResponse> {
   let url = `${BASE_URL}/inventories?page=${page}`;
   if (status) {
-    // Use encodeURIComponent to properly encode the status with spaces
     url += `&status=${encodeURIComponent(status)}`;
+  }
+  if (updatedSince) {
+    url += `&updated_since=${encodeURIComponent(updatedSince)}`;
   }
   
   console.log('Fetching from WholeCell:', url);
@@ -99,13 +101,13 @@ export async function fetchInventories(page: number = 1, status?: string): Promi
   return response.json();
 }
 
-export async function fetchAllInventories(status: string = 'Needs eBay Draft'): Promise<WholeCellInventoryItem[]> {
+export async function fetchAllInventories(status: string = 'Needs eBay Draft', updatedSince?: string): Promise<WholeCellInventoryItem[]> {
   const allItems: WholeCellInventoryItem[] = [];
   let currentPage = 1;
   let totalPages = 1;
 
   do {
-    const response = await fetchInventories(currentPage, status);
+    const response = await fetchInventories(currentPage, status, updatedSince);
     allItems.push(...response.data);
     totalPages = response.pages;
     currentPage++;
