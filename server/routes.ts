@@ -77,17 +77,45 @@ export async function registerRoutes(
     }
   });
 
-  // WholeCell Sync Endpoint
+  // WholeCell Sync Endpoint with SSE progress
   app.post("/api/sync", async (req, res, next) => {
     try {
+      // Set up SSE headers
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache');
+      res.setHeader('Connection', 'keep-alive');
+      res.flushHeaders();
+
+      const sendProgress = (progress: number, synced: number, total: number) => {
+        res.write(`data: ${JSON.stringify({ type: 'progress', progress, synced, total })}\n\n`);
+      };
+
       console.log('Starting WholeCell sync...');
       
       // Fetch all inventories from WholeCell
       const wholecellItems = await fetchAllInventories();
       console.log(`Fetched ${wholecellItems.length} items from WholeCell`);
       
+      const total = wholecellItems.length;
       let synced = 0;
       let errors = 0;
+      
+      // Handle empty result case
+      if (total === 0) {
+        sendProgress(100, 0, 0);
+        res.write(`data: ${JSON.stringify({ 
+          type: 'complete', 
+          success: true, 
+          synced: 0, 
+          errors: 0, 
+          total: 0 
+        })}\n\n`);
+        res.end();
+        return;
+      }
+      
+      // Send initial progress
+      sendProgress(0, 0, total);
       
       for (const wcItem of wholecellItems) {
         try {
@@ -125,20 +153,27 @@ export async function registerRoutes(
           console.error(`Failed to sync item ${wcItem.id}:`, itemError);
           errors++;
         }
+        
+        // Send progress update
+        const progress = Math.round(((synced + errors) / total) * 100);
+        sendProgress(progress, synced, total);
       }
       
       console.log(`Sync complete: ${synced} synced, ${errors} errors`);
       
-      res.json({
-        success: true,
-        message: `Synced ${synced} items from WholeCell`,
-        synced,
-        errors,
-        total: wholecellItems.length,
-      });
+      // Send completion event
+      res.write(`data: ${JSON.stringify({ 
+        type: 'complete', 
+        success: true, 
+        synced, 
+        errors, 
+        total 
+      })}\n\n`);
+      res.end();
     } catch (error) {
       console.error('Sync error:', error);
-      next(error);
+      res.write(`data: ${JSON.stringify({ type: 'error', message: String(error) })}\n\n`);
+      res.end();
     }
   });
 

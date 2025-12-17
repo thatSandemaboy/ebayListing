@@ -38,6 +38,7 @@ export function InventoryTable() {
   const [filter, setFilter] = useState<'all' | 'new' | 'photos_completed' | 'listing_generated'>('all');
   const [search, setSearch] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
+  const [syncProgress, setSyncProgress] = useState(0);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [isBulkExportOpen, setIsBulkExportOpen] = useState(false);
@@ -51,20 +52,52 @@ export function InventoryTable() {
 
   const handleSync = async () => {
     setIsSyncing(true);
+    setSyncProgress(0);
     setSyncMessage(null);
+    
     try {
       const response = await fetch('/api/sync', { method: 'POST' });
-      const data = await response.json();
-      if (data.success) {
-        setSyncMessage(`Synced ${data.synced} items from WholeCell`);
-        refreshInventory();
-      } else {
-        setSyncMessage('Sync failed: ' + (data.message || 'Unknown error'));
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      
+      if (!reader) {
+        throw new Error('No response body');
+      }
+      
+      let buffer = '';
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6));
+              
+              if (data.type === 'progress') {
+                setSyncProgress(data.progress ?? 0);
+              } else if (data.type === 'complete') {
+                setSyncMessage(`Synced ${data.synced} items from WholeCell`);
+                refreshInventory();
+              } else if (data.type === 'error') {
+                setSyncMessage('Sync failed: ' + data.message);
+              }
+            } catch (e) {
+              // Ignore parse errors for incomplete chunks
+            }
+          }
+        }
       }
     } catch (error: any) {
       setSyncMessage('Sync error: ' + error.message);
     } finally {
       setIsSyncing(false);
+      setSyncProgress(0);
       setTimeout(() => setSyncMessage(null), 5000);
     }
   };
@@ -113,11 +146,25 @@ export function InventoryTable() {
             variant="outline" 
             onClick={handleSync}
             disabled={isSyncing}
-            className="gap-2"
+            className="gap-2 min-w-[180px]"
             data-testid="button-sync-wholecell"
           >
-            <RefreshCw className={cn("w-4 h-4", isSyncing && "animate-spin")} />
-            {isSyncing ? 'Syncing...' : 'Sync with WholeCell'}
+            {isSyncing ? (
+              <div className="flex items-center gap-2 w-full">
+                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden min-w-[80px]">
+                  <div 
+                    className="h-full bg-primary transition-all duration-300" 
+                    style={{ width: `${syncProgress}%` }}
+                  />
+                </div>
+                <span className="text-xs whitespace-nowrap">{syncProgress}%</span>
+              </div>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4" />
+                Sync with WholeCell
+              </>
+            )}
           </Button>
           <Button>
             <Package className="w-4 h-4 mr-2" />
