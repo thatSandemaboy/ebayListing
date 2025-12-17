@@ -172,8 +172,13 @@ export async function registerRoutes(
       
       console.log(`Sync complete: ${synced} synced, ${errors} errors`);
       
-      // Save the sync timestamp after successful sync
-      await storage.setSyncMetadata('wholecell_last_sync', syncStartTime);
+      // Only save the sync timestamp if there were no errors
+      // This ensures failed items will be retried on next sync
+      if (errors === 0) {
+        await storage.setSyncMetadata('wholecell_last_sync', syncStartTime);
+      } else {
+        console.log(`Skipping timestamp update due to ${errors} errors - failed items will be retried`);
+      }
       
       // Send completion event
       res.write(`data: ${JSON.stringify({ 
