@@ -77,8 +77,13 @@ export interface WholeCellPhotosResponse {
   photos: WholeCellPhoto[];
 }
 
-export async function fetchInventories(page: number = 1): Promise<WholeCellInventoryResponse> {
-  const response = await fetch(`${BASE_URL}/inventories?page=${page}`, {
+export async function fetchInventories(page: number = 1, status?: string): Promise<WholeCellInventoryResponse> {
+  const params = new URLSearchParams({ page: page.toString() });
+  if (status) {
+    params.set('status', status);
+  }
+  
+  const response = await fetch(`${BASE_URL}/inventories?${params.toString()}`, {
     method: 'GET',
     headers: getAuthHeaders(),
   });
@@ -91,13 +96,13 @@ export async function fetchInventories(page: number = 1): Promise<WholeCellInven
   return response.json();
 }
 
-export async function fetchAllInventories(): Promise<WholeCellInventoryItem[]> {
+export async function fetchAllInventories(status: string = 'Needs eBay Draft'): Promise<WholeCellInventoryItem[]> {
   const allItems: WholeCellInventoryItem[] = [];
   let currentPage = 1;
   let totalPages = 1;
 
   do {
-    const response = await fetchInventories(currentPage);
+    const response = await fetchInventories(currentPage, status);
     allItems.push(...response.data);
     totalPages = response.pages;
     currentPage++;
