@@ -52,3 +52,15 @@ export const syncMetadata = pgTable("sync_metadata", {
 });
 
 export type SyncMetadata = typeof syncMetadata.$inferSelect;
+
+// Photos Table - tracks individual photos linked to items
+export const photos = pgTable("photos", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  itemId: varchar("item_id").notNull().references(() => inventoryItems.id, { onDelete: 'cascade' }),
+  url: text("url").notNull(),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const insertPhotoSchema = createInsertSchema(photos).omit({ id: true, createdAt: true });
+export type InsertPhoto = z.infer<typeof insertPhotoSchema>;
+export type Photo = typeof photos.$inferSelect;

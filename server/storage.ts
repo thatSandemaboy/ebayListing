@@ -1,5 +1,5 @@
-import { type User, type InsertUser, type InventoryItem, type InsertInventoryItem, type SyncMetadata } from "@shared/schema";
-import { users, inventoryItems, syncMetadata } from "@shared/schema";
+import { type User, type InsertUser, type InventoryItem, type InsertInventoryItem, type SyncMetadata, type Photo, type InsertPhoto } from "@shared/schema";
+import { users, inventoryItems, syncMetadata, photos } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { db } from "./db";
 
@@ -15,6 +15,12 @@ export interface IStorage {
   updateInventoryItem(id: string, item: Partial<InsertInventoryItem>): Promise<InventoryItem | undefined>;
   upsertByWholecellId(wholecellId: number, item: Omit<InsertInventoryItem, 'wholecellId'>): Promise<InventoryItem>;
   deleteInventoryItem(id: string): Promise<void>;
+  
+  // Photo operations
+  getPhotosByItemId(itemId: string): Promise<Photo[]>;
+  addPhoto(photo: InsertPhoto): Promise<Photo>;
+  deletePhoto(id: string): Promise<void>;
+  deletePhotosByItemId(itemId: string): Promise<void>;
 }
 
 export class DbStorage implements IStorage {
@@ -111,6 +117,25 @@ export class DbStorage implements IStorage {
     } else {
       await db.insert(syncMetadata).values({ key, value });
     }
+  }
+
+  // Photo operations
+  async getPhotosByItemId(itemId: string): Promise<Photo[]> {
+    const result = await db.select().from(photos).where(eq(photos.itemId, itemId));
+    return result;
+  }
+
+  async addPhoto(photo: InsertPhoto): Promise<Photo> {
+    const result = await db.insert(photos).values(photo).returning();
+    return result[0];
+  }
+
+  async deletePhoto(id: string): Promise<void> {
+    await db.delete(photos).where(eq(photos.id, id));
+  }
+
+  async deletePhotosByItemId(itemId: string): Promise<void> {
+    await db.delete(photos).where(eq(photos.itemId, itemId));
   }
 }
 

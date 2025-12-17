@@ -1,9 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { InventoryItem } from '@/lib/mockData';
-import { useApp } from '@/lib/store';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Camera, Upload, X, GripVertical, Image as ImageIcon, Video, CircleDot, FlipHorizontal, SwitchCamera } from 'lucide-react';
+import { Camera, Upload, X, GripVertical, Image as ImageIcon, Video, CircleDot, FlipHorizontal, SwitchCamera, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -13,12 +13,19 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 
+interface Photo {
+  id: string;
+  itemId: string;
+  url: string;
+  createdAt: string;
+}
+
 interface PhotoManagerProps {
   item: InventoryItem;
 }
 
 export function PhotoManager({ item }: PhotoManagerProps) {
-  const { updateItemPhotos } = useApp();
+  const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -27,6 +34,43 @@ export function PhotoManager({ item }: PhotoManagerProps) {
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
   const [cameraError, setCameraError] = useState<string | null>(null);
+
+  // Fetch photos from database
+  const { data: photos = [], isLoading: photosLoading } = useQuery<Photo[]>({
+    queryKey: ['photos', item.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/items/${item.id}/photos`);
+      if (!res.ok) throw new Error('Failed to fetch photos');
+      return res.json();
+    },
+  });
+
+  // Add photo mutation
+  const addPhotoMutation = useMutation({
+    mutationFn: async (url: string) => {
+      const res = await fetch(`/api/items/${item.id}/photos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+      if (!res.ok) throw new Error('Failed to add photo');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['photos', item.id] });
+    },
+  });
+
+  // Delete photo mutation
+  const deletePhotoMutation = useMutation({
+    mutationFn: async (photoId: string) => {
+      const res = await fetch(`/api/photos/${photoId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete photo');
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['photos', item.id] });
+    },
+  });
 
   const startCamera = useCallback(async () => {
     setCameraError(null);
@@ -82,12 +126,12 @@ export function PhotoManager({ item }: PhotoManagerProps) {
         ctx.drawImage(video, 0, 0);
         ctx.restore();
         
-        // Convert to data URL and add to photos
+        // Convert to data URL and save to database
         const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-        updateItemPhotos(item.id, [...item.photos, dataUrl]);
+        addPhotoMutation.mutate(dataUrl);
       }
     }
-  }, [facingMode, item.id, item.photos, updateItemPhotos]);
+  }, [facingMode, addPhotoMutation]);
 
   const switchCamera = useCallback(() => {
     setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
@@ -117,34 +161,39 @@ export function PhotoManager({ item }: PhotoManagerProps) {
     };
   }, [isCameraOpen, facingMode]);
 
-  // Mock upload functionality
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Convert file to data URL and save to database
+  const fileToDataUrl = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      // In a real app, we'd upload these. Here we just create object URLs
-      const newPhotos = Array.from(e.target.files).map(file => URL.createObjectURL(file));
-      updateItemPhotos(item.id, [...item.photos, ...newPhotos]);
+      for (const file of Array.from(e.target.files)) {
+        const dataUrl = await fileToDataUrl(file);
+        addPhotoMutation.mutate(dataUrl);
+      }
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
     
-    // Mock drop handling - just adding a placeholder for effect if no files actually dropped
-    // or processing files if they exist
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const newPhotos = Array.from(e.dataTransfer.files).map(file => URL.createObjectURL(file));
-      updateItemPhotos(item.id, [...item.photos, ...newPhotos]);
-    } else {
-       // Just to simulate interaction if dropped something else
-       // In real app we'd handle this better
+      for (const file of Array.from(e.dataTransfer.files)) {
+        const dataUrl = await fileToDataUrl(file);
+        addPhotoMutation.mutate(dataUrl);
+      }
     }
   };
 
-  const removePhoto = (index: number) => {
-    const newPhotos = [...item.photos];
-    newPhotos.splice(index, 1);
-    updateItemPhotos(item.id, newPhotos);
+  const removePhoto = (photoId: string) => {
+    deletePhotoMutation.mutate(photoId);
   };
 
   return (
@@ -264,7 +313,7 @@ export function PhotoManager({ item }: PhotoManagerProps) {
             </div>
             
             <p className="text-center text-sm text-muted-foreground">
-              Photos taken: {item.photos.length}
+              Photos taken: {photos.length}
             </p>
           </div>
         </DialogContent>
@@ -274,39 +323,41 @@ export function PhotoManager({ item }: PhotoManagerProps) {
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-medium flex items-center gap-2">
             <ImageIcon className="w-4 h-4 text-muted-foreground" />
-            Gallery ({item.photos.length})
+            Gallery ({photos.length})
+            {photosLoading && <Loader2 className="w-3 h-3 animate-spin" />}
           </h3>
-          {item.photos.length < 4 && (
-            <span className="text-xs text-amber-600 font-medium">Add {4 - item.photos.length} more recommended</span>
+          {photos.length < 4 && (
+            <span className="text-xs text-amber-600 font-medium">Add {4 - photos.length} more recommended</span>
           )}
         </div>
 
-        {item.photos.length === 0 ? (
+        {photos.length === 0 ? (
           <div className="h-40 flex items-center justify-center border rounded-lg bg-muted/20 text-muted-foreground text-sm italic">
-            No photos added yet
+            {photosLoading ? 'Loading photos...' : 'No photos added yet'}
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
             <AnimatePresence>
-              {item.photos.map((photo, index) => (
+              {photos.map((photo, index) => (
                 <motion.div
-                  key={`${photo}-${index}`}
+                  key={photo.id}
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   layout
                   className="group relative aspect-square rounded-lg overflow-hidden bg-background border shadow-sm"
                 >
-                  <img src={photo} alt={`Item ${index + 1}`} className="w-full h-full object-cover" />
+                  <img src={photo.url} alt={`Item ${index + 1}`} className="w-full h-full object-cover" />
                   
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                     <Button 
                       variant="destructive" 
                       size="icon" 
                       className="h-8 w-8 rounded-full"
-                      onClick={(e) => { e.stopPropagation(); removePhoto(index); }}
+                      onClick={(e) => { e.stopPropagation(); removePhoto(photo.id); }}
+                      disabled={deletePhotoMutation.isPending}
                     >
-                      <X className="w-4 h-4" />
+                      {deletePhotoMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
                     </Button>
                   </div>
                   

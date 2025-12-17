@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertInventoryItemSchema } from "@shared/schema";
+import { insertInventoryItemSchema, insertPhotoSchema } from "@shared/schema";
 import { z } from "zod";
 import { fetchAllInventories, mapWholeCellToInventoryItem } from "./wholecell";
 
@@ -226,6 +226,50 @@ export async function registerRoutes(
         connected: false,
         error: error.message,
       });
+    }
+  });
+
+  // Photo Routes
+  app.get("/api/items/:itemId/photos", async (req, res, next) => {
+    try {
+      const { itemId } = req.params;
+      const photos = await storage.getPhotosByItemId(itemId);
+      res.json(photos);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/items/:itemId/photos", async (req, res, next) => {
+    try {
+      const { itemId } = req.params;
+      
+      // Validate the item exists
+      const item = await storage.getInventoryItem(itemId);
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      
+      // Validate request body
+      const validated = insertPhotoSchema.parse({ itemId, url: req.body.url });
+      
+      const photo = await storage.addPhoto(validated);
+      res.status(201).json(photo);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request body", errors: error.errors });
+      }
+      next(error);
+    }
+  });
+
+  app.delete("/api/photos/:id", async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      await storage.deletePhoto(id);
+      res.status(204).send();
+    } catch (error) {
+      next(error);
     }
   });
 
