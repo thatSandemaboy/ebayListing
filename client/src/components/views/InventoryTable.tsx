@@ -34,10 +34,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function InventoryTable() {
-  const { items, selectItem, toggleItemListed, refreshInventory } = useApp();
+  const { items, selectItem, toggleItemListed, refreshInventory, isLoading } = useApp();
   const [filter, setFilter] = useState<'all' | 'new' | 'photos_completed' | 'listing_generated'>('all');
   const [search, setSearch] = useState('');
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [isBulkExportOpen, setIsBulkExportOpen] = useState(false);
 
@@ -48,12 +49,24 @@ export function InventoryTable() {
     return matchesFilter && matchesSearch;
   });
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    setTimeout(() => {
-      refreshInventory();
-      setIsRefreshing(false);
-    }, 1000);
+  const handleSync = async () => {
+    setIsSyncing(true);
+    setSyncMessage(null);
+    try {
+      const response = await fetch('/api/sync', { method: 'POST' });
+      const data = await response.json();
+      if (data.success) {
+        setSyncMessage(`Synced ${data.synced} items from WholeCell`);
+        refreshInventory();
+      } else {
+        setSyncMessage('Sync failed: ' + (data.message || 'Unknown error'));
+      }
+    } catch (error: any) {
+      setSyncMessage('Sync error: ' + error.message);
+    } finally {
+      setIsSyncing(false);
+      setTimeout(() => setSyncMessage(null), 5000);
+    }
   };
 
   const toggleSelectAll = () => {
@@ -93,14 +106,18 @@ export function InventoryTable() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {syncMessage && (
+            <span className="text-sm text-muted-foreground">{syncMessage}</span>
+          )}
           <Button 
             variant="outline" 
-            onClick={handleRefresh}
-            disabled={isRefreshing}
+            onClick={handleSync}
+            disabled={isSyncing}
             className="gap-2"
+            data-testid="button-sync-wholecell"
           >
-            <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
-            Sync with WholeCell
+            <RefreshCw className={cn("w-4 h-4", isSyncing && "animate-spin")} />
+            {isSyncing ? 'Syncing...' : 'Sync with WholeCell'}
           </Button>
           <Button>
             <Package className="w-4 h-4 mr-2" />

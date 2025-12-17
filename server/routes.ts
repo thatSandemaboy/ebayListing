@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertInventoryItemSchema } from "@shared/schema";
 import { z } from "zod";
+import { fetchAllInventories, mapWholeCellToInventoryItem, fetchPhotos } from "./wholecell";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -50,7 +51,6 @@ export async function registerRoutes(
       const { id } = req.params;
       const body = req.body;
       
-      // Validate that the body is partial
       const partialSchema = insertInventoryItemSchema.partial();
       const validated = partialSchema.parse(body);
       
@@ -74,6 +74,103 @@ export async function registerRoutes(
       res.status(204).send();
     } catch (error) {
       next(error);
+    }
+  });
+
+  // WholeCell Sync Endpoint
+  app.post("/api/sync", async (req, res, next) => {
+    try {
+      console.log('Starting WholeCell sync...');
+      
+      // Fetch all inventories from WholeCell
+      const wholecellItems = await fetchAllInventories();
+      console.log(`Fetched ${wholecellItems.length} items from WholeCell`);
+      
+      let synced = 0;
+      let errors = 0;
+      
+      for (const wcItem of wholecellItems) {
+        try {
+          const mapped = mapWholeCellToInventoryItem(wcItem);
+          
+          // Fetch photos for this item (with rate limiting)
+          let photos: string[] = [];
+          try {
+            const wcPhotos = await fetchPhotos(wcItem.id);
+            photos = wcPhotos.map(p => p.url);
+            // Rate limiting
+            await new Promise(resolve => setTimeout(resolve, 500));
+          } catch (photoError) {
+            console.warn(`Failed to fetch photos for item ${wcItem.id}:`, photoError);
+          }
+          
+          // Upsert the item
+          await storage.upsertByWholecellId(mapped.wholecellId, {
+            name: mapped.name,
+            sku: mapped.sku,
+            condition: mapped.condition,
+            status: mapped.status,
+            listed: mapped.listed,
+            details: mapped.details,
+            photos: photos,
+            salePrice: mapped.salePrice,
+            totalPricePaid: mapped.totalPricePaid,
+            warehouse: mapped.warehouse,
+            location: mapped.location,
+          });
+          
+          synced++;
+        } catch (itemError) {
+          console.error(`Failed to sync item ${wcItem.id}:`, itemError);
+          errors++;
+        }
+      }
+      
+      console.log(`Sync complete: ${synced} synced, ${errors} errors`);
+      
+      res.json({
+        success: true,
+        message: `Synced ${synced} items from WholeCell`,
+        synced,
+        errors,
+        total: wholecellItems.length,
+      });
+    } catch (error) {
+      console.error('Sync error:', error);
+      next(error);
+    }
+  });
+
+  // Get sync status / test connection
+  app.get("/api/sync/status", async (req, res, next) => {
+    try {
+      // Try to fetch just one page to test connection
+      const response = await fetch('https://api.wholecell.io/api/v1/inventories?page=1', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${Buffer.from(`${process.env.WHOLECELL_APP_KEY}:${process.env.WHOLECELL_APP_SECRET}`).toString('base64')}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        res.json({
+          connected: true,
+          totalItems: data.data?.length || 0,
+          totalPages: data.pages || 1,
+        });
+      } else {
+        res.json({
+          connected: false,
+          error: `API returned ${response.status}`,
+        });
+      }
+    } catch (error: any) {
+      res.json({
+        connected: false,
+        error: error.message,
+      });
     }
   });
 

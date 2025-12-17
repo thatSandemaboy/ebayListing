@@ -3,9 +3,6 @@ import { users, inventoryItems } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { db } from "./db";
 
-// modify the interface with any CRUD methods
-// you might need
-
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -13,8 +10,10 @@ export interface IStorage {
   
   getInventoryItems(): Promise<InventoryItem[]>;
   getInventoryItem(id: string): Promise<InventoryItem | undefined>;
+  getInventoryItemByWholecellId(wholecellId: number): Promise<InventoryItem | undefined>;
   createInventoryItem(item: InsertInventoryItem): Promise<InventoryItem>;
   updateInventoryItem(id: string, item: Partial<InsertInventoryItem>): Promise<InventoryItem | undefined>;
+  upsertByWholecellId(wholecellId: number, item: Omit<InsertInventoryItem, 'wholecellId'>): Promise<InventoryItem>;
   deleteInventoryItem(id: string): Promise<void>;
 }
 
@@ -44,6 +43,11 @@ export class DbStorage implements IStorage {
     return result[0];
   }
 
+  async getInventoryItemByWholecellId(wholecellId: number): Promise<InventoryItem | undefined> {
+    const result = await db.select().from(inventoryItems).where(eq(inventoryItems.wholecellId, wholecellId));
+    return result[0];
+  }
+
   async createInventoryItem(item: InsertInventoryItem): Promise<InventoryItem> {
     const result = await db.insert(inventoryItems).values(item).returning();
     return result[0];
@@ -60,6 +64,33 @@ export class DbStorage implements IStorage {
       .where(eq(inventoryItems.id, id))
       .returning();
     return result[0];
+  }
+
+  async upsertByWholecellId(wholecellId: number, item: Omit<InsertInventoryItem, 'wholecellId'>): Promise<InventoryItem> {
+    const existing = await this.getInventoryItemByWholecellId(wholecellId);
+    
+    if (existing) {
+      // Update existing item
+      const result = await db
+        .update(inventoryItems)
+        .set({
+          ...item,
+          lastUpdated: new Date().toISOString(),
+        })
+        .where(eq(inventoryItems.wholecellId, wholecellId))
+        .returning();
+      return result[0];
+    } else {
+      // Create new item
+      const result = await db
+        .insert(inventoryItems)
+        .values({
+          ...item,
+          wholecellId,
+        })
+        .returning();
+      return result[0];
+    }
   }
 
   async deleteInventoryItem(id: string): Promise<void> {
