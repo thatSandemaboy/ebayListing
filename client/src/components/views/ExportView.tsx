@@ -12,14 +12,14 @@ interface ExportViewProps {
 export function ExportView({ item }: ExportViewProps) {
   const { updateItemStatus } = useApp();
   const [isExporting, setIsExporting] = useState(false);
-  const [exported, setExported] = useState(item.status === 'completed');
+  const [exported, setExported] = useState(item.status === 'listing_generated');
 
   const handleExport = () => {
     setIsExporting(true);
     setTimeout(() => {
       setIsExporting(false);
       setExported(true);
-      updateItemStatus(item.id, 'completed');
+      updateItemStatus(item.id, 'listing_generated');
     }, 1500);
   };
 
@@ -69,7 +69,7 @@ export function ExportView({ item }: ExportViewProps) {
             </div>
             <div className="flex-1">
               <h4 className="font-semibold text-emerald-800 dark:text-emerald-300">Export Successful!</h4>
-              <p className="text-sm text-emerald-700 dark:text-emerald-400">Item marked as completed and CSV generated.</p>
+              <p className="text-sm text-emerald-700 dark:text-emerald-400">Listing generated and item marked for export.</p>
             </div>
             <Button variant="outline" className="text-emerald-700 border-emerald-200 hover:bg-emerald-100">
               <Download className="w-4 h-4 mr-2" />

@@ -24,9 +24,9 @@ export function BulkExportView({ selectedIds, onClose, onComplete }: BulkExportV
   const handleExport = () => {
     setIsExporting(true);
     setTimeout(() => {
-      // Mark all ready items as completed
+      // Mark all ready items as exported
       readyItems.forEach(item => {
-        updateItemStatus(item.id, 'completed');
+        updateItemStatus(item.id, 'listing_generated');
       });
       setIsExporting(false);
       setExported(true);

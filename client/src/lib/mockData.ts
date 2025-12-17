@@ -2,7 +2,7 @@ import iPhoneImg from '@assets/generated_images/product_image_iphone.png';
 import laptopImg from '@assets/generated_images/product_image_laptop.png';
 import headphonesImg from '@assets/generated_images/product_image_headphones.png';
 
-export type ItemStatus = 'ready' | 'in_progress' | 'completed';
+export type ItemStatus = 'new' | 'photos_completed' | 'listing_generated';
 
 export interface InventoryItem {
   id: string;
@@ -35,7 +35,7 @@ export const mockInventory: InventoryItem[] = [
     name: 'Apple iPhone 14 Pro - 256GB - Graphite',
     sku: 'IP14P-256-GR',
     condition: 'Excellent',
-    status: 'ready',
+    status: 'listing_generated',
     listed: true,
     lastUpdated: '2023-10-24T10:30:00Z',
     details: {
@@ -51,7 +51,7 @@ export const mockInventory: InventoryItem[] = [
     name: 'MacBook Pro 14" M1 Pro - 16GB/512GB',
     sku: 'MBP14-M1-16-512',
     condition: 'Good',
-    status: 'in_progress',
+    status: 'listing_generated',
     listed: true,
     lastUpdated: '2023-10-23T15:45:00Z',
     details: {
@@ -75,7 +75,7 @@ export const mockInventory: InventoryItem[] = [
     name: 'Sony WH-1000XM5 Wireless Headphones',
     sku: 'SNY-XM5-BLK',
     condition: 'Open Box',
-    status: 'completed',
+    status: 'listing_generated',
     listed: true,
     lastUpdated: '2023-10-22T09:15:00Z',
     details: {
@@ -96,7 +96,7 @@ export const mockInventory: InventoryItem[] = [
     name: 'Samsung Galaxy S23 Ultra - 512GB',
     sku: 'S23U-512-BLK',
     condition: 'Mint',
-    status: 'ready',
+    status: 'photos_completed',
     listed: false,
     lastUpdated: '2023-10-25T11:00:00Z',
     details: {
@@ -112,7 +112,7 @@ export const mockInventory: InventoryItem[] = [
     name: 'iPad Air 5th Gen - 64GB - Blue',
     sku: 'IPAD5-64-BLU',
     condition: 'Fair',
-    status: 'ready',
+    status: 'new',
     listed: false,
     lastUpdated: '2023-10-21T14:20:00Z',
     details: {

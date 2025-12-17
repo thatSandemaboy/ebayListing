@@ -37,8 +37,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       
       // Auto-progress if enough photos are added (mock logic)
       let newStatus = item.status;
-      if (photos.length > 0 && item.status === 'ready') {
-        newStatus = 'in_progress';
+      if (photos.length > 0 && item.status === 'new') {
+        newStatus = 'photos_completed';
       }
       
       return { ...item, photos, status: newStatus, lastUpdated: new Date().toISOString() };
@@ -64,7 +64,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       name: 'Google Pixel 7 Pro - 128GB - Obsidian',
       sku: `PXL7P-128-${Math.floor(Math.random() * 1000)}`,
       condition: 'Good',
-      status: 'ready',
+      status: 'new',
+      listed: false,
       lastUpdated: new Date().toISOString(),
       details: {
         brand: 'Google',

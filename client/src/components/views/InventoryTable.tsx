@@ -35,7 +35,7 @@ import {
 
 export function InventoryTable() {
   const { items, selectItem, toggleItemListed, refreshInventory } = useApp();
-  const [filter, setFilter] = useState<'all' | 'ready' | 'in_progress' | 'completed'>('all');
+  const [filter, setFilter] = useState<'all' | 'new' | 'photos_completed' | 'listing_generated'>('all');
   const [search, setSearch] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
@@ -122,7 +122,7 @@ export function InventoryTable() {
 
         <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
           <div className="flex bg-muted p-1 rounded-lg">
-            {(['all', 'ready', 'in_progress', 'completed'] as const).map((f) => (
+            {(['all', 'new', 'photos_completed', 'listing_generated'] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
@@ -133,7 +133,7 @@ export function InventoryTable() {
                     : "text-muted-foreground hover:bg-background/50 hover:text-foreground"
                 )}
               >
-                {f.replace('_', ' ')}
+                {f === 'all' ? 'All' : f === 'new' ? 'New' : f === 'photos_completed' ? 'Photos Done' : 'Listing Done'}
               </button>
             ))}
           </div>
@@ -207,14 +207,14 @@ export function InventoryTable() {
                     variant="outline" 
                     className={cn(
                       "font-normal border-0",
-                      item.status === 'ready' && "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-                      item.status === 'in_progress' && "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
-                      item.status === 'completed' && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+                      item.status === 'new' && "bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300",
+                      item.status === 'photos_completed' && "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
+                      item.status === 'listing_generated' && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
                     )}
                   >
-                    {item.status === 'ready' && 'Ready to List'}
-                    {item.status === 'in_progress' && 'In Progress'}
-                    {item.status === 'completed' && 'Completed'}
+                    {item.status === 'new' && 'New'}
+                    {item.status === 'photos_completed' && 'Photos Completed'}
+                    {item.status === 'listing_generated' && 'Listing Generated'}
                   </Badge>
                 </TableCell>
                 <TableCell onClick={(e) => e.stopPropagation()}>
@@ -237,7 +237,7 @@ export function InventoryTable() {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-2">
-                    {item.status === 'completed' && (
+                    {item.status === 'listing_generated' && (
                       <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                     )}
                     <Button variant="ghost" size="icon" className="h-8 w-8">
