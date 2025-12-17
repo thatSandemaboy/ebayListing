@@ -9,6 +9,7 @@ interface AppContextType {
   updateItemStatus: (id: string, status: ItemStatus) => void;
   updateItemPhotos: (id: string, photos: string[]) => void;
   updateItemListing: (id: string, listing: any) => void;
+  toggleItemListed: (id: string) => void;
   refreshInventory: () => void;
 }
 
@@ -50,6 +51,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     ));
   };
 
+  const toggleItemListed = (id: string) => {
+    setItems(prev => prev.map(item =>
+      item.id === id ? { ...item, listed: !item.listed, lastUpdated: new Date().toISOString() } : item
+    ));
+  };
+
   const refreshInventory = () => {
     // Simulate refresh
     const newItem: InventoryItem = {
@@ -79,6 +86,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateItemStatus,
       updateItemPhotos,
       updateItemListing,
+      toggleItemListed,
       refreshInventory
     }}>
       {children}

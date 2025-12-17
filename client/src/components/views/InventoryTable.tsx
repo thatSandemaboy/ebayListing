@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useApp } from '@/lib/store';
 import { cn } from '@/lib/utils';
-import { Package, Search, RefreshCw, CheckCircle2, Clock, ChevronRight, MoreHorizontal, Filter, Trash2, Download, Share2, X } from 'lucide-react';
+import { Package, Search, RefreshCw, CheckCircle2, Clock, ChevronRight, MoreHorizontal, Filter, Trash2, Download, Share2, X, Globe } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
 import { formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BulkExportView } from '@/components/views/BulkExportView';
@@ -33,7 +34,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export function InventoryTable() {
-  const { items, selectItem, refreshInventory } = useApp();
+  const { items, selectItem, toggleItemListed, refreshInventory } = useApp();
   const [filter, setFilter] = useState<'all' | 'ready' | 'in_progress' | 'completed'>('all');
   const [search, setSearch] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -157,6 +158,7 @@ export function InventoryTable() {
               <TableHead className="min-w-[300px]">Product Details</TableHead>
               <TableHead>Condition</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead className="w-[120px]">Listed</TableHead>
               <TableHead>Last Updated</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -215,6 +217,18 @@ export function InventoryTable() {
                     {item.status === 'completed' && 'Completed'}
                   </Badge>
                 </TableCell>
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={item.listed}
+                      onCheckedChange={() => toggleItemListed(item.id)}
+                      className="data-[state=checked]:bg-emerald-600"
+                    />
+                    <span className={cn("text-xs font-medium transition-colors", item.listed ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground")}>
+                      {item.listed ? 'Listed' : 'Draft'}
+                    </span>
+                  </div>
+                </TableCell>
                 <TableCell>
                   <div className="flex items-center text-muted-foreground text-sm">
                     <Clock className="w-3 h-3 mr-1.5" />
@@ -235,7 +249,7 @@ export function InventoryTable() {
             ))}
             {filteredItems.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
                   No items found matching your search.
                 </TableCell>
               </TableRow>

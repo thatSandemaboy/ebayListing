@@ -10,6 +10,7 @@ export interface InventoryItem {
   sku: string;
   condition: string;
   status: ItemStatus;
+  listed: boolean;
   lastUpdated: string;
   details: {
     brand: string;
@@ -35,6 +36,7 @@ export const mockInventory: InventoryItem[] = [
     sku: 'IP14P-256-GR',
     condition: 'Excellent',
     status: 'ready',
+    listed: true,
     lastUpdated: '2023-10-24T10:30:00Z',
     details: {
       brand: 'Apple',
@@ -50,6 +52,7 @@ export const mockInventory: InventoryItem[] = [
     sku: 'MBP14-M1-16-512',
     condition: 'Good',
     status: 'in_progress',
+    listed: true,
     lastUpdated: '2023-10-23T15:45:00Z',
     details: {
       brand: 'Apple',
@@ -73,6 +76,7 @@ export const mockInventory: InventoryItem[] = [
     sku: 'SNY-XM5-BLK',
     condition: 'Open Box',
     status: 'completed',
+    listed: true,
     lastUpdated: '2023-10-22T09:15:00Z',
     details: {
       brand: 'Sony',
@@ -93,6 +97,7 @@ export const mockInventory: InventoryItem[] = [
     sku: 'S23U-512-BLK',
     condition: 'Mint',
     status: 'ready',
+    listed: false,
     lastUpdated: '2023-10-25T11:00:00Z',
     details: {
       brand: 'Samsung',
@@ -108,6 +113,7 @@ export const mockInventory: InventoryItem[] = [
     sku: 'IPAD5-64-BLU',
     condition: 'Fair',
     status: 'ready',
+    listed: false,
     lastUpdated: '2023-10-21T14:20:00Z',
     details: {
       brand: 'Apple',
