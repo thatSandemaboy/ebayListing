@@ -60,6 +60,8 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  const { seedInventory } = await import("./seed");
+  await seedInventory();
   await registerRoutes(httpServer, app);
 
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

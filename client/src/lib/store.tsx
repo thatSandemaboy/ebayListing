@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { InventoryItem, mockInventory, ItemStatus } from './mockData';
+import React, { createContext, useContext, ReactNode } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { InventoryItem, ItemStatus } from './mockData';
 
 interface AppContextType {
   items: InventoryItem[];
@@ -11,13 +12,36 @@ interface AppContextType {
   updateItemListing: (id: string, listing: any) => void;
   toggleItemListed: (id: string) => void;
   refreshInventory: () => void;
+  isLoading: boolean;
+  error: Error | null;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+const fetchInventoryItems = async (): Promise<InventoryItem[]> => {
+  const res = await fetch('/api/inventory');
+  if (!res.ok) throw new Error('Failed to fetch inventory');
+  return res.json();
+};
+
+const updateInventoryItem = async (id: string, updates: Partial<InventoryItem>): Promise<InventoryItem> => {
+  const res = await fetch(`/api/inventory/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  });
+  if (!res.ok) throw new Error('Failed to update inventory item');
+  return res.json();
+};
+
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<InventoryItem[]>(mockInventory);
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [selectedItemId, setSelectedItemId] = React.useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const { data: items = [], isLoading, error } = useQuery({
+    queryKey: ['inventory'],
+    queryFn: fetchInventoryItems,
+  });
 
   const selectedItem = items.find(item => item.id === selectedItemId) || null;
 
@@ -25,57 +49,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSelectedItemId(id);
   };
 
+  const updateMutation = useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: any }) => updateInventoryItem(id, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['inventory'] });
+    },
+  });
+
   const updateItemStatus = (id: string, status: ItemStatus) => {
-    setItems(prev => prev.map(item => 
-      item.id === id ? { ...item, status, lastUpdated: new Date().toISOString() } : item
-    ));
+    updateMutation.mutate({ id, updates: { status } });
   };
 
   const updateItemPhotos = (id: string, photos: string[]) => {
-    setItems(prev => prev.map(item => {
-      if (item.id !== id) return item;
-      
-      // Auto-progress if enough photos are added (mock logic)
-      let newStatus = item.status;
-      if (photos.length > 0 && item.status === 'new') {
-        newStatus = 'photos_completed';
-      }
-      
-      return { ...item, photos, status: newStatus, lastUpdated: new Date().toISOString() };
-    }));
+    let newStatus = items.find(i => i.id === id)?.status;
+    if (photos.length > 0 && newStatus === 'new') {
+      newStatus = 'photos_completed';
+    }
+    updateMutation.mutate({ id, updates: { photos, status: newStatus } });
   };
 
   const updateItemListing = (id: string, listing: any) => {
-    setItems(prev => prev.map(item => 
-      item.id === id ? { ...item, listing, lastUpdated: new Date().toISOString() } : item
-    ));
+    updateMutation.mutate({ id, updates: { listing } });
   };
 
   const toggleItemListed = (id: string) => {
-    setItems(prev => prev.map(item =>
-      item.id === id ? { ...item, listed: !item.listed, lastUpdated: new Date().toISOString() } : item
-    ));
+    const item = items.find(i => i.id === id);
+    if (item) {
+      updateMutation.mutate({ id, updates: { listed: !item.listed } });
+    }
   };
 
   const refreshInventory = () => {
-    // Simulate refresh
-    const newItem: InventoryItem = {
-      id: Math.random().toString(),
-      name: 'Google Pixel 7 Pro - 128GB - Obsidian',
-      sku: `PXL7P-128-${Math.floor(Math.random() * 1000)}`,
-      condition: 'Good',
-      status: 'new',
-      listed: false,
-      lastUpdated: new Date().toISOString(),
-      details: {
-        brand: 'Google',
-        model: 'Pixel 7 Pro',
-        color: 'Obsidian',
-        storage: '128GB'
-      },
-      photos: []
-    };
-    setItems(prev => [newItem, ...prev]);
+    queryClient.invalidateQueries({ queryKey: ['inventory'] });
   };
 
   return (
@@ -88,7 +93,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
       updateItemPhotos,
       updateItemListing,
       toggleItemListed,
-      refreshInventory
+      refreshInventory,
+      isLoading,
+      error: error as Error | null,
     }}>
       {children}
     </AppContext.Provider>
