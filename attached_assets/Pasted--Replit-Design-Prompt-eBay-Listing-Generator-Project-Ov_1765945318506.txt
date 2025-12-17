@@ -1,0 +1,230 @@
+# Replit Design Prompt: eBay Listing Generator
+
+## Project Overview
+Design a friction-free, elegant web application for streamlining the process of creating eBay listings from inventory items. The app should minimize clicks, reduce cognitive load, and create a delightful experience for users managing multiple product listings.
+
+## Core User Flow
+
+### 1. Data Access & Inventory Management
+- **Primary Action**: Fetch items from WholeCell inventory system marked "ready for eBay listing"
+- **UI Element**: Prominent "Refresh Inventory" button with visual feedback
+- **Display**: Sidebar list showing:
+  - Item name/product identifier
+  - Status badge (Ready, In Progress, Completed)
+  - Last updated date
+  - Visual indicators for completion state
+
+### 2. Photo Capture & Management
+- **Primary Action**: Capture/store photos for selected items
+- **Interaction**: Click item → Photo capture interface appears
+- **Features**:
+  - Drag-and-drop or click-to-upload photo interface
+  - Live preview of uploaded photos
+  - Photo URL storage linked to each item
+  - Visual gallery with ability to reorder/delete photos
+  - Progress indicator showing photo count
+
+### 3. AI-Powered Listing Generation
+- **Primary Action**: Generate eBay listing description using AI
+- **Trigger**: Automatic generation when photos are added, or manual "Generate Listing" button
+- **Display**: 
+  - Loading state with progress indicator
+  - Preview of generated listing (title, description, key features)
+  - Edit capability for fine-tuning
+  - Save draft functionality
+
+### 4. Export & Completion
+- **Primary Action**: Export completed listings to CSV format for eBay import
+- **UI Element**: "Export to CSV" button (enabled when item is complete)
+- **Feedback**: Success notification with download link
+- **Status Update**: Automatically mark item as "Completed" after export
+
+## Design Principles
+
+### Friction-Free Experience
+- **Minimal Clicks**: Complete entire workflow for one item in as few interactions as possible
+- **Progressive Disclosure**: Show only what's needed at each step
+- **Smart Defaults**: Auto-populate fields where possible, reduce manual input
+- **Keyboard Shortcuts**: Power user features for rapid workflow
+- **Bulk Actions**: Ability to process multiple items efficiently
+
+### Elegance & Visual Design
+- **Clean, Modern Aesthetic**: 
+  - Minimalist interface with generous whitespace
+  - Subtle shadows and depth for hierarchy
+  - Smooth animations and transitions (200-300ms)
+  - Modern color palette (consider: soft blues, grays, with accent colors for status)
+  
+- **Visual Hierarchy**:
+  - Clear focus states and hover effects
+  - Status badges with intuitive color coding
+  - Typography scale that guides the eye
+  - Consistent spacing system (8px grid recommended)
+
+- **Micro-interactions**:
+  - Subtle hover states on interactive elements
+  - Loading skeletons instead of spinners
+  - Success animations (checkmarks, confetti for completed items)
+  - Smooth transitions between states
+
+### Layout Structure
+
+**Main Layout:**
+- **Left Sidebar (25-30% width)**: 
+  - Inventory list with search/filter
+  - Status filters (All, Ready, In Progress, Completed)
+  - Refresh button at top
+  
+- **Main Content Area (70-75% width)**:
+  - Contextual panel that changes based on selected item
+  - Three main views:
+    1. **Item Details View**: Basic product info from WholeCell
+    2. **Photo Management View**: Upload, preview, organize photos
+    3. **Listing Preview View**: Generated listing with edit capabilities
+  
+- **Top Bar**:
+  - App title/branding
+  - Global actions (Export All, Settings)
+  - User indicator/status
+
+### Interaction Patterns
+
+**Item Selection Flow:**
+1. Click item in sidebar → Main panel slides in with item details
+2. Tab navigation or step indicator: Details → Photos → Listing → Export
+3. Auto-save progress as user moves through steps
+4. Visual progress indicator showing completion status
+
+**Photo Capture Flow:**
+- Large, inviting drop zone
+- Multiple upload methods: drag-drop, click to browse, camera (if available)
+- Instant preview with ability to crop/rotate
+- Photo count badge showing "X of 12 photos" (eBay limit)
+- Auto-trigger listing generation when minimum photos added
+
+**Listing Generation Flow:**
+- Show AI generation in progress with engaging animation
+- Display generated content in formatted preview (mimics eBay listing appearance)
+- Inline editing with rich text capabilities
+- Real-time character/word count
+- Validation indicators (e.g., "Title length optimal", "Description complete")
+
+**Export Flow:**
+- One-click export button (prominent, always visible)
+- Export options: Single item or bulk export
+- Success state: Download link + "Mark as Complete" option
+- Export history/log for reference
+
+## Visual Design Specifications
+
+### Color Palette
+- **Primary**: Modern blue (#3B82F6 or similar)
+- **Success**: Green (#10B981)
+- **Warning**: Amber (#F59E0B)
+- **Error**: Red (#EF4444)
+- **Neutral**: Gray scale (#F9FAFB to #111827)
+- **Background**: Light mode default, consider dark mode option
+
+### Typography
+- **Headings**: Modern sans-serif (Inter, System UI, or similar)
+- **Body**: Clean, readable sans-serif
+- **Code/Data**: Monospace for technical details
+- **Hierarchy**: Clear size differentiation (H1: 32px, H2: 24px, Body: 16px)
+
+### Components to Design
+
+1. **Inventory List Item**
+   - Item name (truncated with ellipsis)
+   - Status badge (pill-shaped, colored)
+   - Date indicator
+   - Hover state with subtle background change
+   - Active/selected state with left border accent
+
+2. **Photo Upload Zone**
+   - Large, bordered drop zone
+   - Icon + text instruction
+   - Drag-over state with visual feedback
+   - Grid of uploaded photos with hover actions (delete, reorder)
+
+3. **Listing Preview Card**
+   - eBay-style preview layout
+   - Editable fields with clear labels
+   - Character counters
+   - Formatting toolbar for description
+   - Save/Reset buttons
+
+4. **Status Badges**
+   - Small, rounded badges
+   - Color-coded: Ready (blue), In Progress (amber), Completed (green)
+   - Icon + text combination
+
+5. **Progress Indicator**
+   - Step-based progress bar
+   - Visual checkmarks for completed steps
+   - Current step highlighted
+
+6. **Export Button**
+   - Primary CTA styling
+   - Icon + text
+   - Disabled state when no items ready
+   - Loading state during export
+
+## Responsive Considerations
+- **Desktop First**: Optimize for 1280px+ width
+- **Tablet**: Adapt sidebar to collapsible drawer
+- **Mobile**: Stack layout, prioritize main actions
+
+## Accessibility
+- Keyboard navigation support
+- Screen reader friendly labels
+- High contrast mode support
+- Focus indicators on all interactive elements
+
+## Technical Context (for Implementation Reference)
+- **Backend**: Supabase for database
+- **APIs**: WholeCell API (inventory), OpenAI API (listing generation)
+- **Export Format**: CSV compatible with eBay bulk upload
+- **Photo Storage**: URLs stored in database, linked to items
+
+## Design Deliverables Requested
+
+1. **High-Fidelity Mockups**:
+   - Main dashboard view (sidebar + content area)
+   - Item detail view
+   - Photo management interface
+   - Listing preview/edit interface
+   - Export confirmation/success state
+
+2. **Component Library**:
+   - Reusable UI components with variants
+   - Interaction states (hover, active, disabled, loading)
+   - Status indicators and badges
+
+3. **User Flow Diagrams**:
+   - Complete user journey from login to export
+   - Error states and edge cases
+   - Loading and empty states
+
+4. **Design System**:
+   - Color palette with usage guidelines
+   - Typography scale
+   - Spacing system
+   - Component specifications
+
+## Success Metrics (Design Goals)
+- **Efficiency**: Complete listing creation in under 2 minutes per item
+- **Clarity**: Zero confusion about next steps at any point
+- **Delight**: Users enjoy using the tool (smooth, fast, beautiful)
+- **Error Prevention**: Clear validation and helpful error messages
+
+---
+
+**Focus Areas for This Design Phase:**
+1. Visual elegance and modern aesthetic
+2. Friction-free workflow optimization
+3. Clear information hierarchy
+4. Delightful micro-interactions
+5. Professional, trustworthy appearance
+
+Please create a comprehensive design system and high-fidelity mockups that bring this vision to life. The design should feel premium, efficient, and enjoyable to use.
+
