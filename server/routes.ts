@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertInventoryItemSchema } from "@shared/schema";
 import { z } from "zod";
-import { fetchAllInventories, mapWholeCellToInventoryItem, fetchPhotos } from "./wholecell";
+import { fetchAllInventories, mapWholeCellToInventoryItem } from "./wholecell";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -121,18 +121,7 @@ export async function registerRoutes(
         try {
           const mapped = mapWholeCellToInventoryItem(wcItem);
           
-          // Fetch photos for this item (with rate limiting)
-          let photos: string[] = [];
-          try {
-            const wcPhotos = await fetchPhotos(wcItem.id);
-            photos = wcPhotos.map(p => p.url);
-            // Rate limiting
-            await new Promise(resolve => setTimeout(resolve, 500));
-          } catch (photoError) {
-            console.warn(`Failed to fetch photos for item ${wcItem.id}:`, photoError);
-          }
-          
-          // Upsert the item
+          // Upsert the item (photos managed separately, not from WholeCell)
           await storage.upsertByWholecellId(mapped.wholecellId, {
             name: mapped.name,
             sku: mapped.sku,
@@ -141,7 +130,7 @@ export async function registerRoutes(
             listed: mapped.listed,
             createdAt: mapped.createdAt,
             details: mapped.details,
-            photos: photos,
+            photos: [],
             salePrice: mapped.salePrice,
             totalPricePaid: mapped.totalPricePaid,
             warehouse: mapped.warehouse,
