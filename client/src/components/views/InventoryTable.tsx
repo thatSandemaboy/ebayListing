@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useApp } from '@/lib/store';
 import { cn } from '@/lib/utils';
-import { Package, Search, RefreshCw, CheckCircle2, Clock, ChevronRight, MoreHorizontal, Filter } from 'lucide-react';
+import { Package, Search, RefreshCw, CheckCircle2, Clock, ChevronRight, MoreHorizontal, Filter, Trash2, Download, Share2, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { formatDistanceToNow } from 'date-fns';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Table,
   TableBody,
@@ -28,6 +30,7 @@ export function InventoryTable() {
   const [filter, setFilter] = useState<'all' | 'ready' | 'in_progress' | 'completed'>('all');
   const [search, setSearch] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
 
   const filteredItems = items.filter(item => {
     const matchesFilter = filter === 'all' || item.status === filter;
@@ -44,8 +47,30 @@ export function InventoryTable() {
     }, 1000);
   };
 
+  const toggleSelectAll = () => {
+    if (selectedRows.size === filteredItems.length) {
+      setSelectedRows(new Set());
+    } else {
+      setSelectedRows(new Set(filteredItems.map(item => item.id)));
+    }
+  };
+
+  const toggleRow = (id: string) => {
+    const newSelected = new Set(selectedRows);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedRows(newSelected);
+  };
+
+  const clearSelection = () => {
+    setSelectedRows(new Set());
+  };
+
   return (
-    <div className="flex flex-col h-full space-y-4 p-8 max-w-[1600px] mx-auto w-full">
+    <div className="flex flex-col h-full space-y-4 p-8 max-w-[1600px] mx-auto w-full relative">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="space-y-1">
           <h2 className="text-2xl font-bold tracking-tight">Inventory</h2>
@@ -104,10 +129,17 @@ export function InventoryTable() {
         </div>
       </div>
 
-      <div className="rounded-md border bg-card shadow-sm overflow-hidden">
+      <div className="rounded-md border bg-card shadow-sm overflow-hidden relative">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50 hover:bg-muted/50">
+              <TableHead className="w-[40px] pl-4">
+                <Checkbox 
+                  checked={filteredItems.length > 0 && selectedRows.size === filteredItems.length}
+                  onCheckedChange={toggleSelectAll}
+                  aria-label="Select all"
+                />
+              </TableHead>
               <TableHead className="w-[80px]">Image</TableHead>
               <TableHead className="min-w-[300px]">Product Details</TableHead>
               <TableHead>Condition</TableHead>
@@ -120,9 +152,19 @@ export function InventoryTable() {
             {filteredItems.map((item) => (
               <TableRow 
                 key={item.id}
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
+                className={cn(
+                  "cursor-pointer transition-colors",
+                  selectedRows.has(item.id) ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-muted/50"
+                )}
                 onClick={() => selectItem(item.id)}
               >
+                <TableCell className="pl-4" onClick={(e) => e.stopPropagation()}>
+                  <Checkbox 
+                    checked={selectedRows.has(item.id)}
+                    onCheckedChange={() => toggleRow(item.id)}
+                    aria-label={`Select ${item.name}`}
+                  />
+                </TableCell>
                 <TableCell>
                   <div className="h-12 w-12 rounded-md bg-muted overflow-hidden border">
                     {item.photos[0] ? (
@@ -180,7 +222,7 @@ export function InventoryTable() {
             ))}
             {filteredItems.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                   No items found matching your search.
                 </TableCell>
               </TableRow>
@@ -188,6 +230,44 @@ export function InventoryTable() {
           </TableBody>
         </Table>
       </div>
+
+      {/* Bulk Actions Floating Bar */}
+      <AnimatePresence>
+        {selectedRows.size > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 bg-foreground text-background px-6 py-3 rounded-full shadow-xl flex items-center gap-6"
+          >
+            <div className="flex items-center gap-3 border-r border-background/20 pr-6">
+              <span className="font-medium">{selectedRows.size} selected</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={clearSelection}
+                className="h-6 px-2 text-xs hover:bg-background/20 hover:text-background text-background/60"
+              >
+                Clear
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="secondary" className="h-8">
+                <Share2 className="w-3.5 h-3.5 mr-2" />
+                Export Selected
+              </Button>
+              <Button size="sm" variant="ghost" className="h-8 hover:bg-background/20 hover:text-background text-background">
+                <Download className="w-3.5 h-3.5 mr-2" />
+                Download CSV
+              </Button>
+              <Button size="sm" variant="ghost" className="h-8 hover:bg-red-500/20 hover:text-red-400 text-red-400">
+                <Trash2 className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
