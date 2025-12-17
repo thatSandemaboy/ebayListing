@@ -88,6 +88,10 @@ export async function registerRoutes(
 
       const sendProgress = (progress: number, synced: number, total: number) => {
         res.write(`data: ${JSON.stringify({ type: 'progress', progress, synced, total })}\n\n`);
+        // Force flush to ensure client receives updates
+        if (typeof (res as any).flush === 'function') {
+          (res as any).flush();
+        }
       };
 
       console.log('Starting WholeCell sync...');
@@ -146,6 +150,11 @@ export async function registerRoutes(
         // Send progress update
         const progress = Math.round(((synced + errors) / total) * 100);
         sendProgress(progress, synced, total);
+        
+        // Small delay every 10 items to allow progress bar to render
+        if ((synced + errors) % 10 === 0) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
       }
       
       console.log(`Sync complete: ${synced} synced, ${errors} errors`);
