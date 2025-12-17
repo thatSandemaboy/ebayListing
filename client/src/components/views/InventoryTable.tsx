@@ -8,6 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BulkExportView } from '@/components/views/BulkExportView';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -31,6 +38,7 @@ export function InventoryTable() {
   const [search, setSearch] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
+  const [isBulkExportOpen, setIsBulkExportOpen] = useState(false);
 
   const filteredItems = items.filter(item => {
     const matchesFilter = filter === 'all' || item.status === filter;
@@ -67,6 +75,11 @@ export function InventoryTable() {
 
   const clearSelection = () => {
     setSelectedRows(new Set());
+  };
+
+  const handleBulkExportComplete = () => {
+    setIsBulkExportOpen(false);
+    clearSelection();
   };
 
   return (
@@ -253,7 +266,7 @@ export function InventoryTable() {
             </div>
             
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="secondary" className="h-8">
+              <Button size="sm" variant="secondary" className="h-8" onClick={() => setIsBulkExportOpen(true)}>
                 <Share2 className="w-3.5 h-3.5 mr-2" />
                 Export Selected
               </Button>
@@ -268,6 +281,17 @@ export function InventoryTable() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Bulk Export Dialog */}
+      <Dialog open={isBulkExportOpen} onOpenChange={setIsBulkExportOpen}>
+        <DialogContent className="max-w-2xl bg-background/95 backdrop-blur-xl">
+          <BulkExportView 
+            selectedIds={selectedRows} 
+            onClose={() => setIsBulkExportOpen(false)}
+            onComplete={handleBulkExportComplete}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
