@@ -8,43 +8,35 @@ import { ListingGenerator } from '@/components/views/ListingGenerator';
 import { ExportView } from '@/components/views/ExportView';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { UserCircle, Settings, Check, ChevronRight, LayoutDashboard, LogOut } from 'lucide-react';
+import { UserCircle, Settings, Check, ChevronRight, LayoutDashboard } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-  SheetFooter,
-  SheetClose,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export function Dashboard() {
   const { selectedItem, selectItem } = useApp();
   const [activeTab, setActiveTab] = useState('details');
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Sync sheet state with selection
+  // Sync dialog state with selection
   useEffect(() => {
     if (selectedItem) {
-      setIsSheetOpen(true);
+      setIsDialogOpen(true);
       setActiveTab('details');
     } else {
-      setIsSheetOpen(false);
+      setIsDialogOpen(false);
     }
   }, [selectedItem?.id]);
 
-  const handleSheetOpenChange = (open: boolean) => {
-    setIsSheetOpen(open);
+  const handleDialogOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
     if (!open) {
-      // Delay clearing selection to allow animation to finish if needed
-      // But for responsiveness, better to just clear it or keep it
-      // If we clear it, the sheet content might disappear before closing animation
-      // So we'll keep the selection in store, but UI closes
-      // Ideally we'd have a 'closeItem' action
-      setTimeout(() => selectItem(''), 300); // Hacky reset
+      setTimeout(() => selectItem(''), 300);
     }
   };
 
@@ -90,40 +82,42 @@ export function Dashboard() {
         <InventoryTable />
       </main>
 
-      {/* Detail Sheet/Popover */}
-      <Sheet open={isSheetOpen} onOpenChange={handleSheetOpenChange}>
-        <SheetContent side="right" className="w-full sm:w-[540px] lg:w-[800px] p-0 flex flex-col border-l shadow-2xl">
+      {/* Centered Dialog Popover */}
+      <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
+        <DialogContent className="max-w-5xl h-[85vh] p-0 flex flex-col gap-0 overflow-hidden border-none shadow-2xl bg-background/95 backdrop-blur-xl">
           {selectedItem && (
             <>
-              {/* Sheet Header - Fixed */}
-              <div className="border-b px-6 py-4 bg-background z-10">
-                <div className="mb-4">
-                  <h2 className="text-xl font-bold truncate pr-8">{selectedItem.name}</h2>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                    <span className="font-mono bg-muted px-1.5 py-0.5 rounded text-xs">{selectedItem.sku}</span>
-                    <span>•</span>
-                    <span className="capitalize">{selectedItem.condition}</span>
+              {/* Dialog Header - Fixed */}
+              <div className="border-b px-8 py-5 bg-background/50 z-10 shrink-0">
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <DialogTitle className="text-2xl font-bold truncate pr-8">{selectedItem.name}</DialogTitle>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1.5">
+                      <span className="font-mono bg-muted px-2 py-0.5 rounded text-xs font-medium tracking-wide">{selectedItem.sku}</span>
+                      <span>•</span>
+                      <span className="capitalize">{selectedItem.condition}</span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Stepper Navigation */}
-                <div className="flex items-center w-full">
+                <div className="flex items-center w-full max-w-2xl">
                   {steps.map((step, idx) => (
                     <div key={step.id} className="flex items-center flex-1 last:flex-none">
                       <button 
                         onClick={() => setActiveTab(step.id)}
-                        className="flex items-center gap-2 group focus:outline-none"
+                        className="flex items-center gap-3 group focus:outline-none"
                       >
                         <div className={cn(
-                          "w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-medium transition-all duration-300 border-2",
+                          "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 border-2",
                           activeTab === step.id 
-                            ? "border-primary bg-primary text-primary-foreground scale-110 shadow-lg shadow-primary/20" 
+                            ? "border-primary bg-primary text-primary-foreground scale-110 shadow-lg shadow-primary/25" 
                             : step.status === 'complete'
                               ? "border-primary bg-primary/10 text-primary"
-                              : "border-muted-foreground/30 text-muted-foreground bg-background"
+                              : "border-muted-foreground/30 text-muted-foreground bg-transparent"
                         )}>
                           {step.status === 'complete' && activeTab !== step.id ? (
-                            <Check className="w-3.5 h-3.5" />
+                            <Check className="w-4 h-4" />
                           ) : (
                             idx + 1
                           )}
@@ -137,7 +131,7 @@ export function Dashboard() {
                       </button>
                       {idx < steps.length - 1 && (
                         <div className={cn(
-                          "h-0.5 flex-1 mx-3 transition-colors duration-500",
+                          "h-0.5 flex-1 mx-4 transition-colors duration-500 rounded-full",
                           step.status === 'complete' ? "bg-primary" : "bg-muted"
                         )} />
                       )}
@@ -146,31 +140,33 @@ export function Dashboard() {
                 </div>
               </div>
 
-              {/* Sheet Content - Scrollable */}
-              <div className="flex-1 overflow-y-auto bg-muted/10 p-6">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeTab}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="h-full"
-                  >
-                    {activeTab === 'details' && <ItemDetails item={selectedItem} />}
-                    {activeTab === 'photos' && <PhotoManager item={selectedItem} />}
-                    {activeTab === 'listing' && <ListingGenerator item={selectedItem} />}
-                    {activeTab === 'export' && <ExportView item={selectedItem} />}
-                  </motion.div>
-                </AnimatePresence>
+              {/* Dialog Content - Scrollable */}
+              <div className="flex-1 overflow-y-auto bg-muted/10 p-8 scroll-smooth">
+                <div className="max-w-4xl mx-auto h-full">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={activeTab}
+                      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                      transition={{ duration: 0.25, ease: "easeOut" }}
+                      className="h-full"
+                    >
+                      {activeTab === 'details' && <ItemDetails item={selectedItem} />}
+                      {activeTab === 'photos' && <PhotoManager item={selectedItem} />}
+                      {activeTab === 'listing' && <ListingGenerator item={selectedItem} />}
+                      {activeTab === 'export' && <ExportView item={selectedItem} />}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
               </div>
 
-              {/* Sheet Footer - Fixed Actions */}
-              <div className="border-t p-4 bg-background flex justify-between items-center">
-                 <Button variant="ghost" onClick={() => handleSheetOpenChange(false)}>
-                   Close
+              {/* Dialog Footer - Fixed Actions */}
+              <div className="border-t p-5 bg-background/50 flex justify-between items-center shrink-0 backdrop-blur-sm">
+                 <Button variant="ghost" onClick={() => handleDialogOpenChange(false)} className="hover:bg-muted/50">
+                   Cancel & Close
                  </Button>
-                 <div className="flex gap-2">
+                 <div className="flex gap-3">
                     {activeTab !== 'details' && (
                       <Button variant="outline" onClick={() => {
                         const idx = steps.findIndex(s => s.id === activeTab);
@@ -180,23 +176,26 @@ export function Dashboard() {
                       </Button>
                     )}
                     {activeTab !== 'export' ? (
-                      <Button onClick={() => {
-                        const idx = steps.findIndex(s => s.id === activeTab);
-                        if (idx < steps.length - 1) setActiveTab(steps[idx + 1].id);
-                      }}>
-                        Next Step <ChevronRight className="w-4 h-4 ml-1" />
+                      <Button 
+                        onClick={() => {
+                          const idx = steps.findIndex(s => s.id === activeTab);
+                          if (idx < steps.length - 1) setActiveTab(steps[idx + 1].id);
+                        }}
+                        className="px-6"
+                      >
+                        Next Step <ChevronRight className="w-4 h-4 ml-1.5" />
                       </Button>
                     ) : (
-                      <Button variant="default" className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => handleSheetOpenChange(false)}>
-                        <Check className="w-4 h-4 mr-2" /> Done
+                      <Button className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 shadow-lg shadow-emerald-600/20" onClick={() => handleDialogOpenChange(false)}>
+                        <Check className="w-4 h-4 mr-2" /> Finish
                       </Button>
                     )}
                  </div>
               </div>
             </>
           )}
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }
