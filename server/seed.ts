@@ -22,6 +22,7 @@ export async function seedInventory() {
         condition text NOT NULL,
         status text NOT NULL DEFAULT 'new',
         listed boolean NOT NULL DEFAULT false,
+        created_at text NOT NULL DEFAULT CURRENT_TIMESTAMP,
         last_updated text NOT NULL DEFAULT CURRENT_TIMESTAMP,
         details jsonb NOT NULL,
         photos text[] NOT NULL DEFAULT ARRAY[]::text[],
@@ -55,6 +56,10 @@ export async function seedInventory() {
         END;
         BEGIN
           ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS location text;
+        EXCEPTION WHEN duplicate_column THEN NULL;
+        END;
+        BEGIN
+          ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS created_at text NOT NULL DEFAULT CURRENT_TIMESTAMP;
         EXCEPTION WHEN duplicate_column THEN NULL;
         END;
       END $$;

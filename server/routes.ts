@@ -111,6 +111,7 @@ export async function registerRoutes(
             condition: mapped.condition,
             status: mapped.status,
             listed: mapped.listed,
+            createdAt: mapped.createdAt,
             details: mapped.details,
             photos: photos,
             salePrice: mapped.salePrice,

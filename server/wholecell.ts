@@ -172,6 +172,7 @@ export function mapWholeCellToInventoryItem(wcItem: WholeCellInventoryItem) {
     condition,
     status,
     listed: wcItem.order_id !== null,
+    createdAt: wcItem.created_at,
     lastUpdated: wcItem.updated_at,
     details: {
       brand: product?.manufacturer || '',

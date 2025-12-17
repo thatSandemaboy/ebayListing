@@ -160,7 +160,8 @@ export function InventoryTable() {
         </div>
       </div>
 
-      <div className="rounded-md border bg-card shadow-sm overflow-hidden relative">
+      <div className="rounded-md border bg-card shadow-sm overflow-hidden relative flex-1 flex flex-col min-h-0">
+        <div className="overflow-auto flex-1">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50 hover:bg-muted/50">
@@ -273,6 +274,7 @@ export function InventoryTable() {
             )}
           </TableBody>
         </Table>
+        </div>
       </div>
 
       {/* Bulk Actions Floating Bar */}

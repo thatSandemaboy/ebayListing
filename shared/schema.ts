@@ -26,6 +26,7 @@ export const inventoryItems = pgTable("inventory_items", {
   condition: text("condition").notNull(),
   status: text("status").notNull().default("new"), // 'new' | 'photos_completed' | 'listing_generated'
   listed: boolean("listed").notNull().default(false),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
   lastUpdated: text("last_updated").notNull().default(sql`CURRENT_TIMESTAMP`),
   details: jsonb("details").notNull(), // { brand, model, color, storage, variant, network, esn, hexId, grade, conditions }
   photos: text("photos").array().notNull().default(sql`ARRAY[]::text[]`),
