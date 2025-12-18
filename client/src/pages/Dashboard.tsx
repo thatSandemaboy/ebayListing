@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
 import { AppShell } from '@/components/layout/AppShell';
 import { useApp } from '@/lib/store';
 import { InventoryTable } from '@/components/views/InventoryTable';
