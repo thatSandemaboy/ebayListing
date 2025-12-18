@@ -19,6 +19,8 @@ export interface InventoryItem {
     storage?: string;
     processor?: string;
     ram?: string;
+    variant?: string;
+    network?: string;
   };
   photos: string[];
   listing?: {
@@ -27,6 +29,12 @@ export interface InventoryItem {
     price: number;
     category: string;
   };
+  salePrice?: number;
+  totalPricePaid?: number;
+  warehouse?: string;
+  location?: string;
+  wholecellId?: number;
+  createdAt?: string;
 }
 
 export const mockInventory: InventoryItem[] = [
