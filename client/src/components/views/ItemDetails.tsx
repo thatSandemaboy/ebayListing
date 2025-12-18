@@ -1,4 +1,4 @@
-import { InventoryItem } from '@/lib/mockData';
+import { InventoryItem } from '@/lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';

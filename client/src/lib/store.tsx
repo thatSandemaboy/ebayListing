@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { InventoryItem, ItemStatus } from './mockData';
+import { InventoryItem, ItemStatus } from './types';
 
 interface AppContextType {
   items: InventoryItem[];

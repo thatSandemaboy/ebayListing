@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { InventoryItem } from '@/lib/mockData';
+import { InventoryItem } from '@/lib/types';
 import { useApp } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
