@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sparkles, Wand2, Save, RotateCcw, Plus, Trash2, Eye, Code, Download } from 'lucide-react';
+import { Sparkles, Wand2, Save, RotateCcw, Plus, Trash2, Eye, Code, Download, ExternalLink, CheckCircle2, XCircle, Upload, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -51,6 +51,8 @@ export function ListingGenerator({ item }: ListingGeneratorProps) {
   const [showPreview, setShowPreview] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportMessage, setExportMessage] = useState<string | null>(null);
+  const [isPushingToEbay, setIsPushingToEbay] = useState(false);
+  const [ebayPushResult, setEbayPushResult] = useState<{ success: boolean; message: string } | null>(null);
   const [formData, setFormData] = useState<{
     title: string;
     condition: string;
@@ -79,6 +81,15 @@ export function ListingGenerator({ item }: ListingGeneratorProps) {
       const res = await fetch(`/api/items/${item.id}/ebay-listing`);
       if (res.status === 404) return null;
       if (!res.ok) throw new Error('Failed to fetch listing');
+      return res.json();
+    }
+  });
+
+  const { data: ebayStatus } = useQuery<{ connected: boolean; hasCredentials: boolean; redirectUri: string }>({
+    queryKey: ['ebay-status'],
+    queryFn: async () => {
+      const res = await fetch('/api/ebay/status');
+      if (!res.ok) throw new Error('Failed to fetch eBay status');
       return res.json();
     }
   });
@@ -264,6 +275,59 @@ ${features.map(f => `    <li>${f}</li>`).join('\n')}
       setTimeout(() => setExportMessage(null), 3000);
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleConnectEbay = async () => {
+    try {
+      const res = await fetch('/api/ebay/auth');
+      if (!res.ok) throw new Error('Failed to get auth URL');
+      const { authUrl } = await res.json();
+      window.location.href = authUrl;
+    } catch (error) {
+      console.error('Failed to connect to eBay:', error);
+    }
+  };
+
+  const handleDisconnectEbay = async () => {
+    try {
+      await fetch('/api/ebay/disconnect', { method: 'POST' });
+      queryClient.invalidateQueries({ queryKey: ['ebay-status'] });
+    } catch (error) {
+      console.error('Failed to disconnect from eBay:', error);
+    }
+  };
+
+  const handlePushToEbay = async () => {
+    if (!existingListing) {
+      setEbayPushResult({ success: false, message: 'Please save your listing first before pushing to eBay.' });
+      setTimeout(() => setEbayPushResult(null), 5000);
+      return;
+    }
+
+    setIsPushingToEbay(true);
+    setEbayPushResult(null);
+
+    try {
+      const res = await fetch(`/api/ebay/push/${item.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        setEbayPushResult({ success: true, message: result.message || 'Successfully pushed to eBay!' });
+        queryClient.invalidateQueries({ queryKey: ['ebay-listing', item.id] });
+      } else {
+        setEbayPushResult({ success: false, message: result.message || 'Failed to push to eBay' });
+      }
+    } catch (error: any) {
+      setEbayPushResult({ success: false, message: error.message || 'Failed to push to eBay' });
+    } finally {
+      setIsPushingToEbay(false);
+      setTimeout(() => setEbayPushResult(null), 8000);
     }
   };
 
@@ -615,6 +679,103 @@ ${features.map(f => `    <li>${f}</li>`).join('\n')}
                     data-testid="textarea-whats-included"
                   />
                 </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-blue-200 dark:border-blue-900">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M7.5 5.5h-4v13h4v-13zM12 5.5H8v13h4v-13zm8.5 0h-4v13h4v-13zM16.5 5.5h-4v13h4v-13z" fill="#E53238"/>
+                      <path d="M7.5 5.5h-4v13h4v-13z" fill="#0064D2"/>
+                      <path d="M12 5.5H8v13h4v-13z" fill="#F5AF02"/>
+                      <path d="M16.5 5.5h-4v13h4v-13z" fill="#86B817"/>
+                    </svg>
+                    Push to eBay
+                  </CardTitle>
+                  {ebayStatus?.connected ? (
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center gap-1 text-sm text-emerald-600">
+                        <CheckCircle2 className="w-4 h-4" />
+                        Connected
+                      </span>
+                      <Button variant="ghost" size="sm" onClick={handleDisconnectEbay} data-testid="button-disconnect-ebay">
+                        Disconnect
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <XCircle className="w-4 h-4" />
+                        Not connected
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {ebayPushResult && (
+                  <div className={cn(
+                    "p-3 rounded-lg text-sm",
+                    ebayPushResult.success 
+                      ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300" 
+                      : "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300"
+                  )}>
+                    {ebayPushResult.message}
+                  </div>
+                )}
+
+                {!ebayStatus?.hasCredentials ? (
+                  <div className="text-sm text-muted-foreground p-4 bg-muted/50 rounded-lg">
+                    <p className="font-medium mb-2">eBay API credentials not configured</p>
+                    <p>To push listings directly to eBay, add your eBay Developer credentials (Client ID and Client Secret) in the Secrets tab.</p>
+                  </div>
+                ) : !ebayStatus?.connected ? (
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Connect your eBay seller account to push listings directly as drafts.
+                    </p>
+                    <Button onClick={handleConnectEbay} className="w-full" data-testid="button-connect-ebay">
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Connect eBay Account
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Push this listing to your eBay account as a draft. You can then review and publish it from eBay Seller Hub.
+                    </p>
+                    {existingListing?.status === 'ready' && (
+                      <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg text-sm text-emerald-700 dark:text-emerald-300">
+                        This listing has already been pushed to eBay.
+                      </div>
+                    )}
+                    <Button 
+                      onClick={handlePushToEbay} 
+                      disabled={isPushingToEbay || !existingListing || existingListing?.status === 'ready'}
+                      className="w-full"
+                      data-testid="button-push-to-ebay"
+                    >
+                      {isPushingToEbay ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Pushing to eBay...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-4 h-4 mr-2" />
+                          Push to eBay as Draft
+                        </>
+                      )}
+                    </Button>
+                    {!existingListing && (
+                      <p className="text-xs text-muted-foreground text-center">
+                        Save your listing first before pushing to eBay
+                      </p>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

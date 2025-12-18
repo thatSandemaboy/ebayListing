@@ -101,3 +101,17 @@ export const ebayItemSpecifics = pgTable("ebay_item_specifics", {
 export const insertEbayItemSpecificSchema = createInsertSchema(ebayItemSpecifics).omit({ id: true });
 export type InsertEbayItemSpecific = z.infer<typeof insertEbayItemSpecificSchema>;
 export type EbayItemSpecific = typeof ebayItemSpecifics.$inferSelect;
+
+// eBay OAuth Tokens Table - stores user's eBay authorization tokens
+export const ebayTokens = pgTable("ebay_tokens", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  accessToken: text("access_token").notNull(),
+  refreshToken: text("refresh_token").notNull(),
+  expiresAt: text("expires_at").notNull(),
+  refreshExpiresAt: text("refresh_expires_at").notNull(),
+  tokenType: text("token_type").notNull().default("Bearer"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export type EbayToken = typeof ebayTokens.$inferSelect;

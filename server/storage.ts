@@ -1,5 +1,5 @@
-import { type User, type InsertUser, type InventoryItem, type InsertInventoryItem, type SyncMetadata, type Photo, type InsertPhoto, type EbayListing, type InsertEbayListing, type EbayItemSpecific, type InsertEbayItemSpecific } from "@shared/schema";
-import { users, inventoryItems, syncMetadata, photos, ebayListings, ebayItemSpecifics } from "@shared/schema";
+import { type User, type InsertUser, type InventoryItem, type InsertInventoryItem, type SyncMetadata, type Photo, type InsertPhoto, type EbayListing, type InsertEbayListing, type EbayItemSpecific, type InsertEbayItemSpecific, type EbayToken } from "@shared/schema";
+import { users, inventoryItems, syncMetadata, photos, ebayListings, ebayItemSpecifics, ebayTokens } from "@shared/schema";
 import { eq } from "drizzle-orm";
 import { db } from "./db";
 
@@ -33,6 +33,12 @@ export interface IStorage {
   getItemSpecificsByListingId(listingId: string): Promise<EbayItemSpecific[]>;
   setItemSpecifics(listingId: string, specifics: Omit<InsertEbayItemSpecific, 'listingId'>[]): Promise<EbayItemSpecific[]>;
   deleteItemSpecificsByListingId(listingId: string): Promise<void>;
+  
+  // eBay token operations
+  getEbayToken(): Promise<EbayToken | undefined>;
+  saveEbayToken(token: { accessToken: string; refreshToken: string; expiresAt: string; refreshExpiresAt: string }): Promise<EbayToken>;
+  updateEbayToken(updates: Partial<Pick<EbayToken, 'accessToken' | 'expiresAt'>>): Promise<void>;
+  deleteEbayToken(): Promise<void>;
 }
 
 export class DbStorage implements IStorage {
@@ -211,6 +217,44 @@ export class DbStorage implements IStorage {
 
   async deleteItemSpecificsByListingId(listingId: string): Promise<void> {
     await db.delete(ebayItemSpecifics).where(eq(ebayItemSpecifics.listingId, listingId));
+  }
+
+  // eBay token operations (single token for the app)
+  async getEbayToken(): Promise<EbayToken | undefined> {
+    const result = await db.select().from(ebayTokens).limit(1);
+    return result[0];
+  }
+
+  async saveEbayToken(token: {
+    accessToken: string;
+    refreshToken: string;
+    expiresAt: string;
+    refreshExpiresAt: string;
+  }): Promise<EbayToken> {
+    // Delete any existing tokens first (we only store one)
+    await db.delete(ebayTokens);
+    
+    const result = await db.insert(ebayTokens).values({
+      accessToken: token.accessToken,
+      refreshToken: token.refreshToken,
+      expiresAt: token.expiresAt,
+      refreshExpiresAt: token.refreshExpiresAt,
+      tokenType: 'Bearer',
+    }).returning();
+    return result[0];
+  }
+
+  async updateEbayToken(updates: Partial<Pick<EbayToken, 'accessToken' | 'expiresAt'>>): Promise<void> {
+    const token = await this.getEbayToken();
+    if (!token) return;
+    
+    await db.update(ebayTokens)
+      .set({ ...updates, updatedAt: new Date().toISOString() })
+      .where(eq(ebayTokens.id, token.id));
+  }
+
+  async deleteEbayToken(): Promise<void> {
+    await db.delete(ebayTokens);
   }
 }
 

@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { insertInventoryItemSchema, insertPhotoSchema, insertEbayListingSchema, insertEbayItemSpecificSchema } from "@shared/schema";
 import { z } from "zod";
 import { fetchAllInventories, mapWholeCellToInventoryItem } from "./wholecell";
+import { getAuthorizationUrl, exchangeCodeForTokens, isConnectedToEbay, createInventoryItem, createOffer, getBusinessPolicies, getInventoryLocations, getRedirectUri } from "./ebay";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -480,6 +481,173 @@ export async function registerRoutes(
       res.send(csv);
     } catch (error) {
       next(error);
+    }
+  });
+
+  // eBay OAuth Routes
+  app.get("/api/ebay/status", async (req, res, next) => {
+    try {
+      const connected = await isConnectedToEbay();
+      const hasCredentials = !!(process.env.EBAY_CLIENT_ID && process.env.EBAY_CLIENT_SECRET);
+      res.json({ connected, hasCredentials, redirectUri: getRedirectUri() });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/ebay/auth", async (req, res, next) => {
+    try {
+      const authUrl = getAuthorizationUrl();
+      res.json({ authUrl });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/ebay/callback", async (req, res, next) => {
+    try {
+      const { code, error: authError } = req.query;
+      
+      if (authError) {
+        console.error('eBay auth error:', authError);
+        return res.redirect('/?ebay_error=auth_denied');
+      }
+      
+      if (!code || typeof code !== 'string') {
+        return res.redirect('/?ebay_error=no_code');
+      }
+      
+      const tokens = await exchangeCodeForTokens(code);
+      const now = new Date();
+      
+      await storage.saveEbayToken({
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        expiresAt: new Date(now.getTime() + tokens.expiresIn * 1000).toISOString(),
+        refreshExpiresAt: new Date(now.getTime() + tokens.refreshExpiresIn * 1000).toISOString(),
+      });
+      
+      res.redirect('/?ebay_connected=true');
+    } catch (error: any) {
+      console.error('eBay callback error:', error);
+      res.redirect('/?ebay_error=token_exchange_failed');
+    }
+  });
+
+  app.post("/api/ebay/disconnect", async (req, res, next) => {
+    try {
+      await storage.deleteEbayToken();
+      res.json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.get("/api/ebay/policies", async (req, res, next) => {
+    try {
+      const policies = await getBusinessPolicies();
+      res.json(policies);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  app.get("/api/ebay/locations", async (req, res, next) => {
+    try {
+      const locations = await getInventoryLocations();
+      res.json({ locations });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message });
+    }
+  });
+
+  // Push listing to eBay
+  app.post("/api/ebay/push/:itemId", async (req, res, next) => {
+    try {
+      const { itemId } = req.params;
+      const { categoryId, merchantLocationKey, fulfillmentPolicyId, paymentPolicyId, returnPolicyId } = req.body;
+      
+      const item = await storage.getInventoryItem(itemId);
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      
+      const listing = await storage.getEbayListingByItemId(itemId);
+      if (!listing) {
+        return res.status(400).json({ message: "No eBay listing found for this item. Please generate a listing first." });
+      }
+      
+      const photos = await storage.getPhotosByItemId(itemId);
+      const specifics = await storage.getItemSpecificsByListingId(listing.id);
+      
+      // Convert item specifics to eBay aspects format
+      const aspects: Record<string, string[]> = {};
+      for (const s of specifics) {
+        if (s.name && s.value) {
+          aspects[s.name] = [s.value];
+        }
+      }
+      
+      // Step 1: Create inventory item on eBay
+      const inventoryResult = await createInventoryItem(item.sku, {
+        title: listing.title,
+        description: listing.descriptionHtml || '',
+        condition: listing.condition,
+        conditionDescription: listing.conditionNotes || undefined,
+        aspects,
+        imageUrls: photos.map(p => p.url),
+      });
+      
+      if (!inventoryResult.success) {
+        return res.status(400).json({ 
+          message: `Failed to create inventory item: ${inventoryResult.error}`,
+          step: 'inventory_item'
+        });
+      }
+      
+      // Get merchant location key if not provided
+      let locationKey = merchantLocationKey;
+      if (!locationKey) {
+        const locations = await getInventoryLocations();
+        if (locations.length > 0) {
+          locationKey = locations[0].merchantLocationKey;
+        } else {
+          return res.status(400).json({ 
+            message: 'No inventory locations configured in your eBay account. Please create a business location in eBay Seller Hub before pushing listings.',
+            step: 'location_required'
+          });
+        }
+      }
+      
+      // Step 2: Create offer (draft listing)
+      const offerResult = await createOffer(item.sku, {
+        price: listing.price || 0,
+        categoryId: categoryId || listing.categoryId || '',
+        listingDescription: listing.descriptionHtml || undefined,
+        merchantLocationKey: locationKey,
+        fulfillmentPolicyId,
+        paymentPolicyId,
+        returnPolicyId,
+      });
+      
+      if (!offerResult.success) {
+        return res.status(400).json({ 
+          message: `Failed to create offer: ${offerResult.error}`,
+          step: 'offer'
+        });
+      }
+      
+      // Update listing status
+      await storage.updateEbayListing(listing.id, { status: 'ready' });
+      
+      res.json({ 
+        success: true, 
+        offerId: offerResult.offerId,
+        message: 'Listing created on eBay as a draft. You can publish it from your eBay Seller Hub.'
+      });
+    } catch (error: any) {
+      console.error('Push to eBay error:', error);
+      res.status(500).json({ message: error.message });
     }
   });
 

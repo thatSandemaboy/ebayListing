@@ -66,7 +66,16 @@ Preferred communication style: Simple, everyday language.
 - **Condition ID Mapping**: New=1000, Open box=1500, Certified refurbished=2000, Seller refurbished=2500, Used=3000, For parts=7000
 - **UTF-8 BOM**: Included for Excel compatibility
 
+### eBay API Integration
+- **OAuth 2.0 Flow**: User authorization via eBay consent screen, tokens stored in `ebay_tokens` table
+- **Inventory API**: Creates inventory items and offers (draft listings) on eBay
+- **Token Management**: Automatic refresh of expired access tokens using refresh token
+- **Push to eBay**: Single-click push from listing editor creates draft listing on eBay Seller Hub
+- **Sandbox/Production**: Automatically uses sandbox API in development, production API in deployed mode
+
 ### Required Environment Variables
 - `DATABASE_URL` - PostgreSQL connection string
 - `WHOLECELL_APP_KEY` - WholeCell API authentication key
 - `WHOLECELL_APP_SECRET` - WholeCell API authentication secret
+- `EBAY_CLIENT_ID` - eBay Developer App ID (OAuth Client ID)
+- `EBAY_CLIENT_SECRET` - eBay Developer Cert ID (OAuth Client Secret)
