@@ -483,7 +483,7 @@ export function InventoryTable() {
                     <TableCell>
                       <div className="flex flex-col gap-0.5">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-[14px] text-foreground/85 tracking-tight truncate max-w-[400px]">
+                          <span className="text-[14px] text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 tracking-tight truncate max-w-[400px] hover:underline cursor-pointer">
                             {item.name}
                           </span>
                         </div>
