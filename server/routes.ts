@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertInventoryItemSchema, insertPhotoSchema } from "@shared/schema";
+import { insertInventoryItemSchema, insertPhotoSchema, insertEbayListingSchema, insertEbayItemSpecificSchema } from "@shared/schema";
 import { z } from "zod";
 import { fetchAllInventories, mapWholeCellToInventoryItem } from "./wholecell";
 
@@ -267,6 +267,97 @@ export async function registerRoutes(
     try {
       const { id } = req.params;
       await storage.deletePhoto(id);
+      res.status(204).send();
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  // eBay Listing Routes
+  app.get("/api/items/:itemId/ebay-listing", async (req, res, next) => {
+    try {
+      const { itemId } = req.params;
+      const listing = await storage.getEbayListingByItemId(itemId);
+      if (!listing) {
+        return res.status(404).json({ message: "No eBay listing found for this item" });
+      }
+      
+      // Also fetch item specifics
+      const specifics = await storage.getItemSpecificsByListingId(listing.id);
+      res.json({ ...listing, itemSpecifics: specifics });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  app.post("/api/items/:itemId/ebay-listing", async (req, res, next) => {
+    try {
+      const { itemId } = req.params;
+      
+      // Validate the item exists
+      const item = await storage.getInventoryItem(itemId);
+      if (!item) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      
+      // Check if listing already exists
+      const existing = await storage.getEbayListingByItemId(itemId);
+      if (existing) {
+        return res.status(409).json({ message: "eBay listing already exists for this item", listingId: existing.id });
+      }
+      
+      const { itemSpecifics, ...listingData } = req.body;
+      const validated = insertEbayListingSchema.parse({ ...listingData, itemId });
+      
+      const listing = await storage.createEbayListing(validated);
+      
+      // Save item specifics if provided
+      if (itemSpecifics && Array.isArray(itemSpecifics)) {
+        await storage.setItemSpecifics(listing.id, itemSpecifics);
+      }
+      
+      const specifics = await storage.getItemSpecificsByListingId(listing.id);
+      res.status(201).json({ ...listing, itemSpecifics: specifics });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request body", errors: error.errors });
+      }
+      next(error);
+    }
+  });
+
+  app.patch("/api/ebay-listings/:id", async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { itemSpecifics, ...listingData } = req.body;
+      
+      const partialSchema = insertEbayListingSchema.partial();
+      const validated = partialSchema.parse(listingData);
+      
+      const listing = await storage.updateEbayListing(id, validated);
+      if (!listing) {
+        return res.status(404).json({ message: "eBay listing not found" });
+      }
+      
+      // Update item specifics if provided
+      if (itemSpecifics && Array.isArray(itemSpecifics)) {
+        await storage.setItemSpecifics(id, itemSpecifics);
+      }
+      
+      const specifics = await storage.getItemSpecificsByListingId(id);
+      res.json({ ...listing, itemSpecifics: specifics });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid request body", errors: error.errors });
+      }
+      next(error);
+    }
+  });
+
+  app.delete("/api/ebay-listings/:id", async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteEbayListing(id);
       res.status(204).send();
     } catch (error) {
       next(error);

@@ -64,3 +64,40 @@ export const photos = pgTable("photos", {
 export const insertPhotoSchema = createInsertSchema(photos).omit({ id: true, createdAt: true });
 export type InsertPhoto = z.infer<typeof insertPhotoSchema>;
 export type Photo = typeof photos.$inferSelect;
+
+// eBay Listings Table - stores complete eBay listing data
+export const ebayListings = pgTable("ebay_listings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  itemId: varchar("item_id").notNull().references(() => inventoryItems.id, { onDelete: 'cascade' }),
+  status: text("status").notNull().default("draft"), // 'draft' | 'ready' | 'published'
+  title: text("title").notNull(),
+  categoryId: text("category_id"),
+  categoryPath: text("category_path"), // e.g., "Electronics > Portable Audio & Headphones > Headphones"
+  condition: text("condition").notNull(), // e.g., "For parts or not working"
+  conditionNotes: text("condition_notes"),
+  price: real("price"),
+  descriptionHtml: text("description_html"), // Full HTML description
+  whatsIncluded: text("whats_included"),
+  productFeatures: text("product_features").array().default(sql`ARRAY[]::text[]`),
+  shippingPolicy: text("shipping_policy"),
+  returnPolicy: text("return_policy"),
+  createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+});
+
+export const insertEbayListingSchema = createInsertSchema(ebayListings).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertEbayListing = z.infer<typeof insertEbayListingSchema>;
+export type EbayListing = typeof ebayListings.$inferSelect;
+
+// eBay Item Specifics Table - stores key-value pairs for item specifics
+export const ebayItemSpecifics = pgTable("ebay_item_specifics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  listingId: varchar("listing_id").notNull().references(() => ebayListings.id, { onDelete: 'cascade' }),
+  name: text("name").notNull(), // e.g., "Brand", "Model", "Color"
+  value: text("value").notNull(), // e.g., "Bose", "QuietComfort", "Black"
+  displayOrder: integer("display_order").default(0),
+});
+
+export const insertEbayItemSpecificSchema = createInsertSchema(ebayItemSpecifics).omit({ id: true });
+export type InsertEbayItemSpecific = z.infer<typeof insertEbayItemSpecificSchema>;
+export type EbayItemSpecific = typeof ebayItemSpecifics.$inferSelect;
