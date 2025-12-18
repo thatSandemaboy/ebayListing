@@ -105,7 +105,7 @@ export function InventoryTable() {
     return 0;
   });
 
-  const groupedBySku = sortedItems.reduce((acc, item) => {
+  const groupedBySku = filteredItems.reduce((acc, item) => {
     const sku = item.sku;
     if (!acc[sku]) {
       acc[sku] = [];
@@ -114,16 +114,97 @@ export function InventoryTable() {
     return acc;
   }, {} as Record<string, typeof filteredItems>);
 
-  const skuGroups = Object.entries(groupedBySku).map(([sku, items]) => ({
-    sku,
-    items,
-    count: items.length,
-    latestUpdate: items.reduce((latest, item) => 
-      new Date(item.lastUpdated) > new Date(latest) ? item.lastUpdated : latest, 
-      items[0].lastUpdated
-    ),
-    primaryItem: items[0],
-  }));
+  // Helper to get sort value for a group based on current sort column
+  const getGroupSortValue = (items: typeof filteredItems): any => {
+    if (!sortColumn) return 0;
+    
+    switch (sortColumn) {
+      case 'name':
+        return items[0].name.toLowerCase();
+      case 'condition':
+        return items[0].condition.toLowerCase();
+      case 'status':
+        return items[0].status;
+      case 'listed':
+        return items.filter(i => i.listed).length / items.length;
+      case 'createdAt':
+        // Use earliest created date for ascending, latest for descending
+        return sortDirection === 'asc' 
+          ? Math.min(...items.map(i => new Date(i.createdAt || 0).getTime()))
+          : Math.max(...items.map(i => new Date(i.createdAt || 0).getTime()));
+      case 'lastUpdated':
+        // Use earliest updated date for ascending, latest for descending
+        return sortDirection === 'asc'
+          ? Math.min(...items.map(i => new Date(i.lastUpdated).getTime()))
+          : Math.max(...items.map(i => new Date(i.lastUpdated).getTime()));
+      default:
+        return 0;
+    }
+  };
+
+  // Sort items within each group
+  const sortItems = (items: typeof filteredItems) => {
+    if (!sortColumn) return items;
+    return [...items].sort((a, b) => {
+      let aVal: any, bVal: any;
+      switch (sortColumn) {
+        case 'name':
+          aVal = a.name.toLowerCase();
+          bVal = b.name.toLowerCase();
+          break;
+        case 'condition':
+          aVal = a.condition.toLowerCase();
+          bVal = b.condition.toLowerCase();
+          break;
+        case 'status':
+          aVal = a.status;
+          bVal = b.status;
+          break;
+        case 'listed':
+          aVal = a.listed ? 1 : 0;
+          bVal = b.listed ? 1 : 0;
+          break;
+        case 'createdAt':
+          aVal = new Date(a.createdAt || 0).getTime();
+          bVal = new Date(b.createdAt || 0).getTime();
+          break;
+        case 'lastUpdated':
+          aVal = new Date(a.lastUpdated).getTime();
+          bVal = new Date(b.lastUpdated).getTime();
+          break;
+        default:
+          return 0;
+      }
+      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
+  const skuGroups = Object.entries(groupedBySku).map(([sku, items]) => {
+    const sortedGroupItems = sortItems(items);
+    return {
+      sku,
+      items: sortedGroupItems,
+      count: items.length,
+      latestUpdate: items.reduce((latest, item) => 
+        new Date(item.lastUpdated) > new Date(latest) ? item.lastUpdated : latest, 
+        items[0].lastUpdated
+      ),
+      earliestCreated: items.reduce((earliest, item) => 
+        new Date(item.createdAt || 0) < new Date(earliest) ? (item.createdAt || earliest) : earliest, 
+        items[0].createdAt || items[0].lastUpdated
+      ),
+      primaryItem: sortedGroupItems[0],
+    };
+  }).sort((a, b) => {
+    if (!sortColumn) return 0;
+    const aVal = getGroupSortValue(a.items);
+    const bVal = getGroupSortValue(b.items);
+    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+    return 0;
+  });
 
   const toggleGroup = (sku: string) => {
     const newExpanded = new Set(expandedGroups);
