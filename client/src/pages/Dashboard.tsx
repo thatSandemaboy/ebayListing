@@ -5,7 +5,6 @@ import { InventoryTable } from '@/components/views/InventoryTable';
 import { ItemDetails } from '@/components/views/ItemDetails';
 import { PhotoManager } from '@/components/views/PhotoManager';
 import { ListingGenerator } from '@/components/views/ListingGenerator';
-import { ExportView } from '@/components/views/ExportView';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { UserCircle, Settings, Check, LayoutDashboard } from 'lucide-react';
@@ -123,16 +122,6 @@ export function Dashboard() {
                     <ListingGenerator item={selectedItem} />
                   </section>
 
-                  <Separator />
-
-                  {/* Section 4: Export */}
-                  <section>
-                    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-bold">4</span>
-                      Export
-                    </h3>
-                    <ExportView item={selectedItem} />
-                  </section>
                 </div>
               </div>
 

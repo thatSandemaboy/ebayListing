@@ -59,13 +59,6 @@ Preferred communication style: Simple, everyday language.
 - **Description HTML**: Formatted HTML with sections for Product Description, Condition, What's Included, Key Features
 - **Condition Mapping**: Maps inventory conditions to eBay conditions (New, Open box, Used, For parts, etc.)
 
-### eBay CSV Export
-- **Bulk Export**: Select multiple items in inventory table, click "Export to eBay" in floating action bar
-- **Single Item Export**: Use "Export CSV" button in Listing Editor section
-- **CSV Format**: Matches eBay File Exchange template with columns: Action, Custom label (SKU), Category ID, Title, UPC, Price, Quantity, Item photo URL, Condition ID, Description, Format
-- **Condition ID Mapping**: New=1000, Open box=1500, Certified refurbished=2000, Seller refurbished=2500, Used=3000, For parts=7000
-- **UTF-8 BOM**: Included for Excel compatibility
-
 ### eBay API Integration
 - **OAuth 2.0 Flow**: User authorization via eBay consent screen, tokens stored in `ebay_tokens` table
 - **Inventory API**: Creates inventory items and offers (draft listings) on eBay

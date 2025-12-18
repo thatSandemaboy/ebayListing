@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '@/lib/store';
 import { cn } from '@/lib/utils';
-import { Package, Search, RefreshCw, CheckCircle2, Clock, ChevronRight, ChevronDown, MoreHorizontal, Filter, Trash2, Download, Share2, X, Globe, Layers, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Package, Search, RefreshCw, CheckCircle2, Clock, ChevronRight, ChevronDown, MoreHorizontal, Filter, Trash2, X, Globe, Layers, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +9,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BulkExportView } from '@/components/views/BulkExportView';
 import {
   Dialog,
   DialogContent,
@@ -41,11 +40,9 @@ export function InventoryTable() {
   const [syncProgress, setSyncProgress] = useState(0);
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
-  const [isBulkExportOpen, setIsBulkExportOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [sortColumn, setSortColumn] = useState<'name' | 'condition' | 'status' | 'listed' | 'lastUpdated' | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [isExporting, setIsExporting] = useState(false);
 
   const toggleSort = (column: typeof sortColumn) => {
     if (sortColumn === column) {
@@ -225,53 +222,6 @@ export function InventoryTable() {
 
   const clearSelection = () => {
     setSelectedRows(new Set());
-  };
-
-  const handleBulkExportComplete = () => {
-    setIsBulkExportOpen(false);
-    clearSelection();
-  };
-
-  const handleExportToEbay = async () => {
-    if (selectedRows.size === 0) return;
-    
-    setIsExporting(true);
-    try {
-      const response = await fetch('/api/ebay/export', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemIds: Array.from(selectedRows) }),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Export failed');
-      }
-      
-      // Get the filename from Content-Disposition header
-      const contentDisposition = response.headers.get('Content-Disposition');
-      const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
-      const filename = filenameMatch ? filenameMatch[1] : 'ebay-export.csv';
-      
-      // Download the file
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
-      setSyncMessage(`Exported ${selectedRows.size} items to eBay CSV`);
-      clearSelection();
-      setTimeout(() => setSyncMessage(null), 5000);
-    } catch (error: any) {
-      setSyncMessage('Export failed: ' + error.message);
-      setTimeout(() => setSyncMessage(null), 5000);
-    } finally {
-      setIsExporting(false);
-    }
   };
 
   return (
@@ -696,21 +646,6 @@ export function InventoryTable() {
             </div>
             
             <div className="flex items-center gap-2">
-              <Button size="sm" variant="secondary" className="h-8" onClick={() => setIsBulkExportOpen(true)}>
-                <Share2 className="w-3.5 h-3.5 mr-2" />
-                Export Selected
-              </Button>
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                className="h-8 hover:bg-background/20 hover:text-background text-background"
-                onClick={handleExportToEbay}
-                disabled={isExporting}
-                data-testid="button-export-ebay-csv"
-              >
-                <Download className="w-3.5 h-3.5 mr-2" />
-                {isExporting ? 'Exporting...' : 'Export to eBay'}
-              </Button>
               <Button size="sm" variant="ghost" className="h-8 hover:bg-red-500/20 hover:text-red-400 text-red-400">
                 <Trash2 className="w-3.5 h-3.5" />
               </Button>
@@ -719,16 +654,6 @@ export function InventoryTable() {
         )}
       </AnimatePresence>
 
-      {/* Bulk Export Dialog */}
-      <Dialog open={isBulkExportOpen} onOpenChange={setIsBulkExportOpen}>
-        <DialogContent className="max-w-2xl bg-background/95 backdrop-blur-xl">
-          <BulkExportView 
-            selectedIds={selectedRows} 
-            onClose={() => setIsBulkExportOpen(false)}
-            onComplete={handleBulkExportComplete}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
