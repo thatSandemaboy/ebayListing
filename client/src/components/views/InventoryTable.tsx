@@ -483,7 +483,7 @@ export function InventoryTable() {
                     <TableCell>
                       <div className="flex flex-col gap-0.5">
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-[14px] text-foreground/85 tracking-tight truncate max-w-[400px]">
+                          <span className="font-semibold text-[14px] text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 tracking-tight truncate max-w-[400px] hover:underline cursor-pointer">
                             {item.name}
                           </span>
                         </div>
@@ -498,7 +498,14 @@ export function InventoryTable() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="font-semibold text-[10px] uppercase tracking-wider border-border/50 text-muted-foreground/80 bg-muted/30">
+                      <Badge variant="outline" className={cn(
+                        "font-semibold text-[10px] uppercase tracking-wider",
+                        item.condition.toLowerCase().includes('new') && "bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800",
+                        item.condition.toLowerCase().includes('a grade') && "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800",
+                        item.condition.toLowerCase().includes('b') && "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800",
+                        item.condition.toLowerCase().includes('c') && "bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800",
+                        !item.condition.toLowerCase().includes('new') && !item.condition.toLowerCase().includes('grade') && "bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
+                      )}>
                         {item.condition}
                       </Badge>
                     </TableCell>
@@ -592,7 +599,14 @@ export function InventoryTable() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <span className="text-[11px] font-medium text-muted-foreground/60 capitalize">{subItem.condition}</span>
+                          <span className={cn(
+                            "text-[10px] font-semibold px-1.5 py-0.5 rounded capitalize",
+                            subItem.condition.toLowerCase().includes('new') && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+                            subItem.condition.toLowerCase().includes('a grade') && "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+                            subItem.condition.toLowerCase().includes('b') && "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+                            subItem.condition.toLowerCase().includes('c') && "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+                            !subItem.condition.toLowerCase().includes('new') && !subItem.condition.toLowerCase().includes('grade') && "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                          )}>{subItem.condition}</span>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1.5">
