@@ -10,80 +10,70 @@ interface ItemDetailsProps {
 
 export function ItemDetails({ item }: ItemDetailsProps) {
   return (
-    <div className="space-y-6">
-      <Card className="border-none shadow-sm bg-card/50 backdrop-blur-sm">
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-medium flex items-center gap-2">
-              <Package className="w-5 h-5 text-primary" />
-              Product Details
-            </CardTitle>
-            <Badge variant="secondary" className="font-mono text-xs">
-              {item.sku}
-            </Badge>
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="space-y-6">
+          <div className="space-y-1.5">
+            <span className="text-[11px] font-bold text-muted-foreground/50 uppercase tracking-[0.1em]">Product Name</span>
+            <p className="text-[16px] font-semibold text-foreground/90 leading-tight">{item.name}</p>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-y-4 gap-x-8">
-            <div className="space-y-1">
-              <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Product Name</span>
-              <p className="font-medium">{item.name}</p>
+          
+          <div className="flex flex-wrap gap-4">
+            <div className="space-y-1.5 flex-1 min-w-[120px]">
+              <span className="text-[11px] font-bold text-muted-foreground/50 uppercase tracking-[0.1em]">SKU</span>
+              <div className="font-mono text-[13px] text-foreground/70 bg-muted/30 px-2.5 py-1 rounded border border-border/40 inline-block">
+                {item.sku}
+              </div>
             </div>
-            <div className="space-y-1">
-              <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Condition</span>
-              <Badge variant="outline" className="bg-background">{item.condition}</Badge>
+            <div className="space-y-1.5 flex-1 min-w-[120px]">
+              <span className="text-[11px] font-bold text-muted-foreground/50 uppercase tracking-[0.1em]">Condition</span>
+              <div>
+                <Badge variant="outline" className="bg-background text-[11px] font-bold border-border/60 text-foreground/70 px-2.5">
+                  {item.condition}
+                </Badge>
+              </div>
             </div>
           </div>
+        </div>
 
-          <Separator className="my-4" />
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50 border">
-              <Tag className="w-4 h-4 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="text-xs text-muted-foreground">Brand</p>
-                <p className="font-medium text-sm">{item.details.brand}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50 border">
-              <Smartphone className="w-4 h-4 text-muted-foreground mt-0.5" />
-              <div>
-                <p className="text-xs text-muted-foreground">Model</p>
-                <p className="font-medium text-sm">{item.details.model}</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50 border">
-              <div className="w-4 h-4 rounded-full bg-slate-200 mt-0.5 border" />
-              <div>
-                <p className="text-xs text-muted-foreground">Color</p>
-                <p className="font-medium text-sm">{item.details.color}</p>
-              </div>
-            </div>
-
-            {item.details.storage && (
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50 border">
-                <HardDrive className="w-4 h-4 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Storage</p>
-                  <p className="font-medium text-sm">{item.details.storage}</p>
-                </div>
-              </div>
-            )}
-
-            {item.details.processor && (
-              <div className="flex items-start gap-3 p-3 rounded-lg bg-background/50 border">
-                <Cpu className="w-4 h-4 text-muted-foreground mt-0.5" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Processor</p>
-                  <p className="font-medium text-sm">{item.details.processor}</p>
-                </div>
-              </div>
-            )}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="flex flex-col gap-1.5 p-4 rounded-xl bg-muted/[0.15] border border-border/30">
+            <Tag className="w-3.5 h-3.5 text-muted-foreground/60 mb-1" />
+            <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-wider">Brand</span>
+            <span className="text-[13px] font-semibold text-foreground/80">{item.details.brand}</span>
           </div>
-        </CardContent>
-      </Card>
+          
+          <div className="flex flex-col gap-1.5 p-4 rounded-xl bg-muted/[0.15] border border-border/30">
+            <Smartphone className="w-3.5 h-3.5 text-muted-foreground/60 mb-1" />
+            <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-wider">Model</span>
+            <span className="text-[13px] font-semibold text-foreground/80">{item.details.model}</span>
+          </div>
+
+          <div className="flex flex-col gap-1.5 p-4 rounded-xl bg-muted/[0.15] border border-border/30">
+            <div className="w-3 h-3 rounded-full bg-slate-200 border border-border/50 mb-1" />
+            <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-wider">Color</span>
+            <span className="text-[13px] font-semibold text-foreground/80">{item.details.color}</span>
+          </div>
+
+          {item.details.storage && (
+            <div className="flex flex-col gap-1.5 p-4 rounded-xl bg-muted/[0.15] border border-border/30">
+              <HardDrive className="w-3.5 h-3.5 text-muted-foreground/60 mb-1" />
+              <span className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-wider">Storage</span>
+              <span className="text-[13px] font-semibold text-foreground/80">{item.details.storage}</span>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {item.details.processor && (
+        <div className="p-4 rounded-xl bg-muted/[0.05] border border-border/20 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+             <Cpu className="w-4 h-4 text-muted-foreground/50" />
+             <span className="text-[12px] font-medium text-muted-foreground/70">Processor Specifications</span>
+          </div>
+          <span className="text-[12px] font-bold text-foreground/70">{item.details.processor}</span>
+        </div>
+      )}
     </div>
   );
 }
