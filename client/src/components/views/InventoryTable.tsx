@@ -41,7 +41,7 @@ export function InventoryTable() {
   const [syncMessage, setSyncMessage] = useState<string | null>(null);
   const [selectedRows, setSelectedRows] = useState<Set<string>>(new Set());
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-  const [sortColumn, setSortColumn] = useState<'name' | 'condition' | 'status' | 'listed' | 'lastUpdated' | null>(null);
+  const [sortColumn, setSortColumn] = useState<'name' | 'condition' | 'status' | 'listed' | 'createdAt' | 'lastUpdated' | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   const toggleSort = (column: typeof sortColumn) => {
@@ -87,6 +87,10 @@ export function InventoryTable() {
       case 'listed':
         aVal = a.listed ? 1 : 0;
         bVal = b.listed ? 1 : 0;
+        break;
+      case 'createdAt':
+        aVal = new Date(a.createdAt || 0).getTime();
+        bVal = new Date(b.createdAt || 0).getTime();
         break;
       case 'lastUpdated':
         aVal = new Date(a.lastUpdated).getTime();
@@ -349,10 +353,19 @@ export function InventoryTable() {
               </TableHead>
               <TableHead 
                 className="cursor-pointer hover:bg-muted/80 select-none"
+                onClick={() => toggleSort('createdAt')}
+              >
+                <div className="flex items-center">
+                  Created
+                  {getSortIcon('createdAt')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-muted/80 select-none"
                 onClick={() => toggleSort('lastUpdated')}
               >
                 <div className="flex items-center">
-                  Last Updated
+                  Updated
                   {getSortIcon('lastUpdated')}
                 </div>
               </TableHead>
@@ -501,6 +514,11 @@ export function InventoryTable() {
                       )}
                     </TableCell>
                     <TableCell>
+                      <div className="text-muted-foreground text-sm">
+                        {item.createdAt ? formatDistanceToNow(new Date(item.createdAt), { addSuffix: true }) : '-'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex items-center text-muted-foreground text-sm">
                         <Clock className="w-3 h-3 mr-1.5" />
                         {formatDistanceToNow(new Date(group.latestUpdate), { addSuffix: true })}
@@ -592,6 +610,11 @@ export function InventoryTable() {
                           </div>
                         </TableCell>
                         <TableCell>
+                          <div className="text-muted-foreground text-xs">
+                            {subItem.createdAt ? formatDistanceToNow(new Date(subItem.createdAt), { addSuffix: true }) : '-'}
+                          </div>
+                        </TableCell>
+                        <TableCell>
                           <div className="flex items-center text-muted-foreground text-xs">
                             <Clock className="w-3 h-3 mr-1" />
                             {formatDistanceToNow(new Date(subItem.lastUpdated), { addSuffix: true })}
@@ -610,7 +633,7 @@ export function InventoryTable() {
             })}
             {skuGroups.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="h-24 text-center text-muted-foreground">
+                <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
                   No items found matching your search.
                 </TableCell>
               </TableRow>
