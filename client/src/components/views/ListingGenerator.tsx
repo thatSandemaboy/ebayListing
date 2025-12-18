@@ -50,6 +50,7 @@ export function ListingGenerator({ item }: ListingGeneratorProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportMessage, setExportMessage] = useState<string | null>(null);
   const [formData, setFormData] = useState<{
     title: string;
     condition: string;
@@ -232,6 +233,7 @@ ${features.map(f => `    <li>${f}</li>`).join('\n')}
 
   const handleExportSingle = async () => {
     setIsExporting(true);
+    setExportMessage(null);
     try {
       const response = await fetch('/api/ebay/export', {
         method: 'POST',
@@ -254,8 +256,12 @@ ${features.map(f => `    <li>${f}</li>`).join('\n')}
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      
+      setExportMessage('CSV exported successfully!');
+      setTimeout(() => setExportMessage(null), 3000);
     } catch (error) {
-      console.error('Export failed:', error);
+      setExportMessage('Export failed');
+      setTimeout(() => setExportMessage(null), 3000);
     } finally {
       setIsExporting(false);
     }
@@ -359,7 +365,17 @@ ${features.map(f => `    <li>${f}</li>`).join('\n')}
       ) : (
         <div className="space-y-6 pb-20">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold" data-testid="text-listing-preview">Listing Editor</h3>
+            <div className="flex items-center gap-3">
+              <h3 className="text-lg font-semibold" data-testid="text-listing-preview">Listing Editor</h3>
+              {exportMessage && (
+                <span className={cn(
+                  "text-sm",
+                  exportMessage.includes('success') ? "text-emerald-600" : "text-red-500"
+                )}>
+                  {exportMessage}
+                </span>
+              )}
+            </div>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={generateListing} data-testid="button-regenerate">
                 <RotateCcw className="w-4 h-4 mr-2" />

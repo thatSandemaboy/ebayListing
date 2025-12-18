@@ -264,6 +264,7 @@ export function InventoryTable() {
       document.body.removeChild(a);
       
       setSyncMessage(`Exported ${selectedRows.size} items to eBay CSV`);
+      clearSelection();
       setTimeout(() => setSyncMessage(null), 5000);
     } catch (error: any) {
       setSyncMessage('Export failed: ' + error.message);
