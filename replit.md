@@ -48,6 +48,16 @@ Preferred communication style: Simple, everyday language.
 ### Database
 - **PostgreSQL**: Required, connection via `DATABASE_URL` environment variable
 - **Session Storage**: connect-pg-simple for Express session persistence
+- **Key Tables**: 
+  - `inventory_items` - Core inventory data with WholeCell integration
+  - `photos` - Individual photos linked to items via foreign key
+  - `ebay_listings` - Complete eBay listing data (title, condition, price, description HTML)
+  - `ebay_item_specifics` - Key-value pairs for eBay Item Specifics (Brand, Model, etc.)
+
+### eBay Listings Structure
+- **Item Specifics**: Structured key-value pairs matching eBay's format (Brand, Model, Color, Storage, Network, etc.)
+- **Description HTML**: Formatted HTML with sections for Product Description, Condition, What's Included, Key Features
+- **Condition Mapping**: Maps inventory conditions to eBay conditions (New, Open box, Used, For parts, etc.)
 
 ### Required Environment Variables
 - `DATABASE_URL` - PostgreSQL connection string
