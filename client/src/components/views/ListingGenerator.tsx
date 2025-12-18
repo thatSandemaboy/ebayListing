@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Sparkles, Wand2, Save, RotateCcw, Plus, Trash2, Eye, Code } from 'lucide-react';
+import { Sparkles, Wand2, Save, RotateCcw, Plus, Trash2, Eye, Code, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -49,6 +49,7 @@ export function ListingGenerator({ item }: ListingGeneratorProps) {
   const queryClient = useQueryClient();
   const [isGenerating, setIsGenerating] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [formData, setFormData] = useState<{
     title: string;
     condition: string;
@@ -229,6 +230,37 @@ ${features.map(f => `    <li>${f}</li>`).join('\n')}
     }
   };
 
+  const handleExportSingle = async () => {
+    setIsExporting(true);
+    try {
+      const response = await fetch('/api/ebay/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemIds: [item.id] }),
+      });
+      
+      if (!response.ok) throw new Error('Export failed');
+      
+      const contentDisposition = response.headers.get('Content-Disposition');
+      const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
+      const filename = filenameMatch ? filenameMatch[1] : 'ebay-export.csv';
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Export failed:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const addItemSpecific = () => {
     setFormData(prev => ({
       ...prev,
@@ -332,6 +364,16 @@ ${features.map(f => `    <li>${f}</li>`).join('\n')}
               <Button variant="outline" size="sm" onClick={generateListing} data-testid="button-regenerate">
                 <RotateCcw className="w-4 h-4 mr-2" />
                 Regenerate
+              </Button>
+              <Button 
+                variant="outline"
+                size="sm" 
+                onClick={handleExportSingle}
+                disabled={isExporting}
+                data-testid="button-export-single"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {isExporting ? 'Exporting...' : 'Export CSV'}
               </Button>
               <Button 
                 size="sm" 

@@ -45,6 +45,7 @@ export function InventoryTable() {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [sortColumn, setSortColumn] = useState<'name' | 'condition' | 'status' | 'listed' | 'lastUpdated' | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [isExporting, setIsExporting] = useState(false);
 
   const toggleSort = (column: typeof sortColumn) => {
     if (sortColumn === column) {
@@ -229,6 +230,47 @@ export function InventoryTable() {
   const handleBulkExportComplete = () => {
     setIsBulkExportOpen(false);
     clearSelection();
+  };
+
+  const handleExportToEbay = async () => {
+    if (selectedRows.size === 0) return;
+    
+    setIsExporting(true);
+    try {
+      const response = await fetch('/api/ebay/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemIds: Array.from(selectedRows) }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Export failed');
+      }
+      
+      // Get the filename from Content-Disposition header
+      const contentDisposition = response.headers.get('Content-Disposition');
+      const filenameMatch = contentDisposition?.match(/filename="(.+)"/);
+      const filename = filenameMatch ? filenameMatch[1] : 'ebay-export.csv';
+      
+      // Download the file
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      setSyncMessage(`Exported ${selectedRows.size} items to eBay CSV`);
+      setTimeout(() => setSyncMessage(null), 5000);
+    } catch (error: any) {
+      setSyncMessage('Export failed: ' + error.message);
+      setTimeout(() => setSyncMessage(null), 5000);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -657,9 +699,16 @@ export function InventoryTable() {
                 <Share2 className="w-3.5 h-3.5 mr-2" />
                 Export Selected
               </Button>
-              <Button size="sm" variant="ghost" className="h-8 hover:bg-background/20 hover:text-background text-background">
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="h-8 hover:bg-background/20 hover:text-background text-background"
+                onClick={handleExportToEbay}
+                disabled={isExporting}
+                data-testid="button-export-ebay-csv"
+              >
                 <Download className="w-3.5 h-3.5 mr-2" />
-                Download CSV
+                {isExporting ? 'Exporting...' : 'Export to eBay'}
               </Button>
               <Button size="sm" variant="ghost" className="h-8 hover:bg-red-500/20 hover:text-red-400 text-red-400">
                 <Trash2 className="w-3.5 h-3.5" />
