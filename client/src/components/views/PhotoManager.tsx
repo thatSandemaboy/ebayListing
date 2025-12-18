@@ -197,36 +197,34 @@ export function PhotoManager({ item }: PhotoManagerProps) {
   };
 
   return (
-    <div className="space-y-6 h-full flex flex-col">
+    <div className="space-y-8 h-full flex flex-col animate-in fade-in duration-500">
       {/* Action buttons row */}
-      <div className="flex gap-3">
+      <div className="flex gap-4">
         <Button
-          variant="default"
-          size="lg"
-          className="flex-1 h-14"
+          variant="secondary"
+          className="flex-1 h-12 text-[13px] font-bold border border-border/50 shadow-sm transition-all active:scale-[0.98]"
           onClick={() => setIsCameraOpen(true)}
           data-testid="button-open-camera"
         >
-          <Video className="w-5 h-5 mr-2" />
-          Take Photo
+          <Video className="w-4 h-4 mr-2 text-primary" />
+          Capture Photo
         </Button>
         <Button
-          variant="outline"
-          size="lg"
-          className="flex-1 h-14"
+          variant="secondary"
+          className="flex-1 h-12 text-[13px] font-bold border border-border/50 shadow-sm transition-all active:scale-[0.98]"
           onClick={() => fileInputRef.current?.click()}
           data-testid="button-upload-file"
         >
-          <Upload className="w-5 h-5 mr-2" />
-          Upload File
+          <Upload className="w-4 h-4 mr-2 text-primary" />
+          Upload Files
         </Button>
       </div>
 
       {/* Drag and drop area */}
       <div 
         className={cn(
-          "border-2 border-dashed rounded-xl p-6 transition-all text-center cursor-pointer group relative overflow-hidden bg-card/50",
-          isDragging ? "border-primary bg-primary/5 scale-[1.01]" : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/50"
+          "border border-dashed rounded-xl p-8 transition-all text-center cursor-pointer group relative overflow-hidden bg-muted/[0.03]",
+          isDragging ? "border-primary bg-primary/[0.02] scale-[1.01]" : "border-border/60 hover:border-primary/40 hover:bg-muted/[0.08]"
         )}
         onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
         onDragLeave={() => setIsDragging(false)}
@@ -242,98 +240,35 @@ export function PhotoManager({ item }: PhotoManagerProps) {
           onChange={handleFileChange}
         />
         
-        <div className="flex flex-col items-center justify-center space-y-2">
-          <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-            <Camera className="w-5 h-5 text-muted-foreground" />
+        <div className="flex flex-col items-center justify-center space-y-3">
+          <div className="w-12 h-12 rounded-full bg-background border border-border/40 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+            <ImageIcon className="w-5 h-5 text-muted-foreground/60" />
           </div>
-          <div className="space-y-0.5">
-            <p className="text-sm text-muted-foreground">Or drag photos here</p>
+          <div className="space-y-1">
+            <p className="text-[13px] font-bold text-foreground/70">Click or drag photos to upload</p>
+            <p className="text-[11px] text-muted-foreground/50 font-medium uppercase tracking-wider">Supports JPG, PNG up to 10MB</p>
           </div>
         </div>
       </div>
 
-      {/* Camera Dialog */}
-      <Dialog open={isCameraOpen} onOpenChange={setIsCameraOpen}>
-        <DialogContent className="max-w-2xl p-0 overflow-hidden">
-          <DialogHeader className="p-4 pb-0">
-            <DialogTitle>Take Photo</DialogTitle>
-          </DialogHeader>
-          
-          <div className="p-4 space-y-4">
-            {cameraError ? (
-              <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
-                <p className="text-destructive text-center px-4">{cameraError}</p>
-              </div>
-            ) : (
-              <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  className={cn(
-                    "w-full h-full object-cover",
-                    facingMode === 'user' && "scale-x-[-1]"
-                  )}
-                />
-                <canvas ref={canvasRef} className="hidden" />
-              </div>
-            )}
-            
-            <div className="flex items-center justify-center gap-4">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-12 w-12 rounded-full"
-                onClick={switchCamera}
-                data-testid="button-switch-camera"
-              >
-                <SwitchCamera className="w-5 h-5" />
-              </Button>
-              
-              <Button
-                size="icon"
-                className="h-16 w-16 rounded-full bg-red-500 hover:bg-red-600"
-                onClick={capturePhoto}
-                disabled={!!cameraError}
-                data-testid="button-capture-photo"
-              >
-                <CircleDot className="w-8 h-8" />
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-12 w-12 rounded-full"
-                onClick={() => setIsCameraOpen(false)}
-                data-testid="button-close-camera"
-              >
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
-            
-            <p className="text-center text-sm text-muted-foreground">
-              Photos taken: {photos.length}
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <div className="flex-1 overflow-y-auto pr-2">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium flex items-center gap-2">
-            <ImageIcon className="w-4 h-4 text-muted-foreground" />
-            Gallery ({photos.length})
-            {photosLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+      <div className="flex-1 space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-[14px] font-bold text-foreground/80 flex items-center gap-2">
+            Asset Gallery
+            <span className="text-[11px] font-bold text-primary/60 bg-primary/5 px-2 py-0.5 rounded-full border border-primary/10">
+              {photos.length}
+            </span>
+            {photosLoading && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground/40" />}
           </h3>
           {photos.length < 4 && (
-            <span className="text-xs text-amber-600 font-medium">Add {4 - photos.length} more recommended</span>
+            <span className="text-[11px] font-bold text-amber-600/70 uppercase tracking-tight">Recommended: 4+ photos</span>
           )}
         </div>
 
         {photos.length === 0 ? (
-          <div className="h-40 flex items-center justify-center border rounded-lg bg-muted/20 text-muted-foreground text-sm italic">
-            {photosLoading ? 'Loading photos...' : 'No photos added yet'}
+          <div className="h-48 flex flex-col items-center justify-center border border-border/40 rounded-xl bg-muted/[0.02] text-muted-foreground/30 gap-3">
+            <ImageIcon className="w-8 h-8 opacity-10" />
+            <p className="text-[13px] font-medium italic">{photosLoading ? 'Scanning library...' : 'No assets in gallery'}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -341,28 +276,28 @@ export function PhotoManager({ item }: PhotoManagerProps) {
               {photos.map((photo, index) => (
                 <motion.div
                   key={photo.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
                   layout
-                  className="group relative aspect-square rounded-lg overflow-hidden bg-background border shadow-sm"
+                  className="group relative aspect-square rounded-xl overflow-hidden bg-background border border-border/50 shadow-sm hover:shadow-md transition-all"
                 >
-                  <img src={photo.url} alt={`Item ${index + 1}`} className="w-full h-full object-cover" />
+                  <img src={photo.url} alt={`Item ${index + 1}`} className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500" />
                   
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <Button 
                       variant="destructive" 
                       size="icon" 
-                      className="h-8 w-8 rounded-full"
+                      className="h-8 w-8 rounded-full shadow-lg scale-90 group-hover:scale-100 transition-transform"
                       onClick={(e) => { e.stopPropagation(); removePhoto(photo.id); }}
                       disabled={deletePhotoMutation.isPending}
                     >
-                      {deletePhotoMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <X className="w-4 h-4" />}
+                      {deletePhotoMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <X className="w-3.5 h-3.5" />}
                     </Button>
                   </div>
                   
-                  <div className="absolute top-2 left-2 bg-black/50 text-white text-[10px] px-1.5 py-0.5 rounded backdrop-blur-md">
-                    #{index + 1}
+                  <div className="absolute top-2 left-2 bg-background/90 text-foreground text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm backdrop-blur-md border border-border/50">
+                    {index === 0 ? 'Primary' : `Asset ${index + 1}`}
                   </div>
                 </motion.div>
               ))}

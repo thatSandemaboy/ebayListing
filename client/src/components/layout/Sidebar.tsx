@@ -30,124 +30,120 @@ export function Sidebar() {
   };
 
   return (
-    <div className="w-80 border-r bg-sidebar flex flex-col h-full">
-      <div className="p-4 space-y-4 border-b">
+    <div className="w-[320px] border-r bg-sidebar flex flex-col h-full overflow-hidden">
+      <div className="p-4 space-y-4 border-b bg-background/50 backdrop-blur-sm">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-lg flex items-center gap-2">
-            <Package className="w-5 h-5 text-primary" />
+          <h2 className="font-semibold text-[14px] text-foreground/80 flex items-center gap-2">
+            <Package className="w-4 h-4 text-primary" />
             Inventory
           </h2>
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={handleRefresh}
-            className={cn("h-8 w-8", isRefreshing && "animate-spin")}
+            className={cn("h-7 w-7 text-muted-foreground hover:text-foreground", isRefreshing && "animate-spin")}
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className="w-3.5 h-3.5" />
           </Button>
         </div>
         
-        <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+        <div className="relative group">
+          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground transition-colors group-focus-within:text-primary" />
           <Input 
             placeholder="Search SKU or Name..." 
-            className="pl-9 bg-background/50"
+            className="pl-9 h-9 bg-background/50 border-border/50 text-[13px] transition-all focus:bg-background focus:ring-1 focus:ring-primary/20"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
-        <div className="flex gap-1 p-1 bg-muted/50 rounded-lg">
+        <div className="flex gap-1 p-1 bg-muted/30 rounded-lg border border-border/50">
           {(['all', 'ready', 'in_progress', 'completed'] as const).map((f) => (
             <button
               key={f}
               onClick={() => setFilter(f)}
               className={cn(
-                "flex-1 text-xs font-medium py-1.5 rounded-md transition-all capitalize",
+                "flex-1 text-[11px] font-medium py-1.5 rounded-md transition-all capitalize",
                 filter === f 
-                  ? "bg-background shadow-sm text-foreground" 
-                  : "text-muted-foreground hover:bg-background/50"
+                  ? "bg-background shadow-sm text-foreground ring-1 ring-border/10" 
+                  : "text-muted-foreground hover:text-foreground hover:bg-background/50"
               )}
             >
-              {f.replace('_', ' ')}
+              {f === 'all' ? 'All' : f.replace('_', ' ')}
             </button>
           ))}
         </div>
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-3 space-y-2">
+        <div className="p-2 space-y-1">
           {filteredItems.map((item) => (
             <div
               key={item.id}
               onClick={() => selectItem(item.id)}
               className={cn(
-                "p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md group relative overflow-hidden",
+                "p-3 rounded-lg cursor-pointer transition-all relative group overflow-hidden border border-transparent",
                 selectedItemId === item.id
-                  ? "bg-primary/5 border-primary ring-1 ring-primary/20" 
-                  : "bg-card border-border hover:border-primary/50"
+                  ? "bg-primary/5 border-primary/10 shadow-sm" 
+                  : "hover:bg-accent/50 hover:border-border/50"
               )}
             >
               {selectedItemId === item.id && (
-                <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary" />
+                <div className="absolute left-0 top-2 bottom-2 w-0.5 bg-primary rounded-full" />
               )}
               
-              <div className="flex justify-between items-start mb-2">
-                <Badge 
-                  variant="outline" 
-                  className={cn(
-                    "text-[10px] px-1.5 py-0 h-5 font-normal border-0",
-                    item.status === 'ready' && "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-                    item.status === 'in_progress' && "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
-                    item.status === 'completed' && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
-                  )}
-                >
-                  {item.status === 'ready' && 'Ready'}
-                  {item.status === 'in_progress' && 'In Progress'}
-                  {item.status === 'completed' && 'Completed'}
-                </Badge>
-                <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
+              <div className="flex justify-between items-start mb-1.5">
+                <div className={cn(
+                  "text-[9px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider",
+                  item.status === 'ready' && "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
+                  item.status === 'in_progress' && "bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400",
+                  item.status === 'completed' && "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400",
+                )}>
+                  {item.status.replace('_', ' ')}
+                </div>
+                <span className="text-[10px] text-muted-foreground/60 flex items-center gap-1 font-medium">
                   {formatDistanceToNow(new Date(item.lastUpdated), { addSuffix: true })}
                 </span>
               </div>
               
-              <h3 className="text-sm font-medium leading-tight mb-1 line-clamp-2">
+              <h3 className={cn(
+                "text-[13px] font-medium leading-snug mb-1 line-clamp-2 transition-colors",
+                selectedItemId === item.id ? "text-foreground" : "text-foreground/80 group-hover:text-foreground"
+              )}>
                 {item.name}
               </h3>
               
-              <p className="text-xs text-muted-foreground font-mono">
-                {item.sku}
-              </p>
-
-              <div className="mt-3 flex items-center justify-between">
-                <div className="flex -space-x-1.5">
-                  {item.photos.slice(0, 3).map((photo, i) => (
-                    <div key={i} className="w-5 h-5 rounded-full ring-1 ring-background overflow-hidden bg-muted">
-                      <img src={photo} alt="" className="w-full h-full object-cover" />
-                    </div>
-                  ))}
-                  {item.photos.length > 3 && (
-                    <div className="w-5 h-5 rounded-full ring-1 ring-background bg-muted flex items-center justify-center text-[8px] font-medium text-muted-foreground">
-                      +{item.photos.length - 3}
-                    </div>
+              <div className="flex items-center justify-between mt-2">
+                <p className="text-[11px] text-muted-foreground/60 font-mono tracking-tight">
+                  {item.sku}
+                </p>
+                
+                <div className="flex items-center gap-2">
+                  <div className="flex -space-x-1.5">
+                    {item.photos.slice(0, 3).map((photo, i) => (
+                      <div key={i} className="w-4 h-4 rounded-full ring-2 ring-background overflow-hidden bg-muted border border-border/50">
+                        <img src={photo} alt="" className="w-full h-full object-cover" />
+                      </div>
+                    ))}
+                  </div>
+                  {item.status === 'completed' && (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shadow-sm" />
                   )}
                 </div>
-                
-                {item.status === 'completed' && (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                )}
               </div>
             </div>
           ))}
 
           {filteredItems.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              <p className="text-sm">No items found</p>
+            <div className="text-center py-12 px-4">
+              <Package className="w-8 h-8 text-muted/20 mx-auto mb-3" />
+              <p className="text-[13px] text-muted-foreground font-medium">No items found</p>
+              <p className="text-[11px] text-muted-foreground/60 mt-1">Try adjusting your filters or search</p>
             </div>
           )}
         </div>
       </ScrollArea>
     </div>
+  );
   );
 }

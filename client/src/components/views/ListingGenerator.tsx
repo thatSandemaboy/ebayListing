@@ -348,109 +348,115 @@ ${features.map(f => `    <li>${f}</li>`).join('\n')}
   const hasListing = existingListing || formData.title;
 
   return (
-    <div className="h-full flex flex-col space-y-6">
+    <div className="h-full flex flex-col space-y-8 animate-in fade-in duration-500">
       {!hasListing && !isGenerating ? (
-        <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-6 border-2 border-dashed rounded-xl bg-card/30">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/40 dark:to-indigo-900/40 flex items-center justify-center">
-            <Sparkles className="w-10 h-10 text-primary" />
+        <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-6 border border-dashed rounded-2xl bg-muted/[0.02] border-border/60">
+          <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center border border-primary/10 shadow-inner">
+            <Sparkles className="w-9 h-9 text-primary/80" />
           </div>
           <div className="max-w-md space-y-2">
-            <h3 className="text-xl font-semibold" data-testid="text-generate-heading">Ready to Generate Listing</h3>
-            <p className="text-muted-foreground">
-              Generate an eBay-ready listing with Item Specifics, formatted description, and pricing based on your item details.
+            <h3 className="text-xl font-bold tracking-tight text-foreground/80" data-testid="text-generate-heading">Optimize with AI</h3>
+            <p className="text-[14px] text-muted-foreground/70 font-medium">
+              We'll analyze your assets and item specifications to generate a professional, SEO-optimized eBay listing in seconds.
             </p>
           </div>
           <Button 
             size="lg" 
             onClick={generateListing}
-            className="h-12 px-8 text-base shadow-lg shadow-primary/25"
+            className="h-12 px-10 text-[14px] font-bold shadow-lg shadow-primary/10 rounded-xl transition-all hover:scale-[1.02] active:scale-[0.98]"
             data-testid="button-generate-listing"
           >
-            <Wand2 className="w-5 h-5 mr-2" />
-            Generate with AI
+            <Wand2 className="w-4 h-4 mr-2" />
+            Generate Listing
           </Button>
         </div>
       ) : isGenerating ? (
-        <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-6">
-          <div className="relative w-24 h-24">
-            <div className="absolute inset-0 rounded-full border-4 border-muted-foreground/20"></div>
+        <div className="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-8">
+          <div className="relative w-28 h-28 flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full border-4 border-primary/5"></div>
             <motion.div 
-              className="absolute inset-0 rounded-full border-4 border-t-primary border-r-primary border-b-transparent border-l-transparent"
+              className="absolute inset-0 rounded-full border-4 border-t-primary border-r-transparent border-b-transparent border-l-transparent"
               animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
             ></motion.div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Sparkles className="w-8 h-8 text-primary animate-pulse" />
-            </div>
+            <Sparkles className="w-10 h-10 text-primary/40 animate-pulse" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-lg font-medium">Generating eBay Listing...</h3>
-            <p className="text-sm text-muted-foreground">Creating Item Specifics and description</p>
+            <h3 className="text-[16px] font-bold text-foreground/80">Synthesizing Listing Data...</h3>
+            <p className="text-[13px] text-muted-foreground/50 font-medium uppercase tracking-widest">Optimizing for eBay Search Engine</p>
           </div>
         </div>
       ) : (
-        <div className="space-y-6 pb-20">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold" data-testid="text-listing-preview">Listing Editor</h3>
+        <div className="space-y-8 pb-20">
+          <div className="flex items-center justify-between bg-muted/[0.05] p-4 rounded-xl border border-border/30">
+            <div className="flex items-center gap-3">
+               <div className="w-8 h-8 rounded-lg bg-background flex items-center justify-center border border-border/40 shadow-sm">
+                  <Wand2 className="w-4 h-4 text-primary" />
+               </div>
+               <div>
+                 <h3 className="text-[14px] font-bold text-foreground/80" data-testid="text-listing-preview">Smart Editor</h3>
+                 <p className="text-[11px] text-muted-foreground/50 font-medium">AI-Generated Draft</p>
+               </div>
+            </div>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={generateListing} data-testid="button-regenerate">
-                <RotateCcw className="w-4 h-4 mr-2" />
+              <Button variant="ghost" size="sm" onClick={generateListing} className="h-9 text-[12px] font-bold text-muted-foreground hover:text-foreground" data-testid="button-regenerate">
+                <RotateCcw className="w-3.5 h-3.5 mr-2" />
                 Regenerate
               </Button>
               <Button 
                 size="sm" 
                 onClick={handleSave}
                 disabled={createListingMutation.isPending || updateListingMutation.isPending}
+                className="h-9 px-4 text-[12px] font-bold shadow-sm"
                 data-testid="button-save-listing"
               >
-                <Save className="w-4 h-4 mr-2" />
-                {existingListing ? 'Update' : 'Save'} Listing
+                <Save className="w-3.5 h-3.5 mr-2" />
+                {existingListing ? 'Save Changes' : 'Create Listing'}
               </Button>
             </div>
           </div>
 
-          <div className="grid gap-6">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Basic Information</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+          <div className="grid gap-8">
+            <div className="space-y-6">
+              <h4 className="text-[12px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] px-1">Basic Information</h4>
+              <div className="grid gap-6 bg-muted/[0.03] p-6 rounded-2xl border border-border/40 shadow-sm">
                 <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <Label htmlFor="title">Title</Label>
-                    <span className={cn("text-xs", formData.title.length > 80 ? "text-red-500" : "text-muted-foreground")}>
-                      {formData.title.length}/80 chars
+                  <div className="flex justify-between items-end">
+                    <Label htmlFor="title" className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-wider">Listing Title</Label>
+                    <span className={cn("text-[10px] font-bold tracking-tight", formData.title.length > 80 ? "text-red-500" : "text-muted-foreground/40")}>
+                      {formData.title.length}/80
                     </span>
                   </div>
                   <Input 
                     id="title" 
                     value={formData.title} 
                     onChange={(e) => setFormData({...formData, title: e.target.value})}
-                    className="font-medium"
+                    className="h-11 bg-background text-[15px] font-semibold border-border/60 focus:ring-primary/20 transition-all"
                     data-testid="input-title"
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="condition">Condition</Label>
+                    <Label htmlFor="condition" className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-wider">eBay Condition</Label>
                     <Input 
                       id="condition" 
                       value={formData.condition} 
                       onChange={(e) => setFormData({...formData, condition: e.target.value})}
+                      className="h-11 bg-background text-[14px] border-border/60"
                       data-testid="input-condition"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="price">Price</Label>
+                    <Label htmlFor="price" className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-wider">Target Price</Label>
                     <div className="relative">
-                      <span className="absolute left-3 top-2.5 text-muted-foreground">$</span>
+                      <span className="absolute left-3.5 top-3 text-[14px] font-bold text-muted-foreground/40">$</span>
                       <Input 
                         id="price" 
                         type="number" 
                         value={formData.price} 
                         onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
-                        className="pl-7 font-mono"
+                        className="h-11 pl-8 bg-background text-[14px] font-mono font-bold border-border/60"
                         data-testid="input-price"
                       />
                     </div>
@@ -458,264 +464,209 @@ ${features.map(f => `    <li>${f}</li>`).join('\n')}
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
+                  <Label htmlFor="category" className="text-[11px] font-bold text-muted-foreground/60 uppercase tracking-wider">Marketplace Category</Label>
                   <Input 
                     id="category" 
                     value={formData.categoryPath} 
                     onChange={(e) => setFormData({...formData, categoryPath: e.target.value})}
-                    className="text-sm"
+                    className="h-11 bg-background text-[13px] border-border/60 text-muted-foreground/80"
                     data-testid="input-category"
                   />
                 </div>
+              </div>
+            </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="conditionNotes">Seller Notes (Condition)</Label>
-                  <Textarea 
-                    id="conditionNotes" 
-                    value={formData.conditionNotes} 
-                    onChange={(e) => setFormData({...formData, conditionNotes: e.target.value})}
-                    placeholder="Additional notes about the item's condition..."
-                    className="min-h-[80px]"
-                    data-testid="input-condition-notes"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">Item Specifics</CardTitle>
-                  <Button variant="outline" size="sm" onClick={addItemSpecific} data-testid="button-add-specific">
-                    <Plus className="w-4 h-4 mr-1" />
-                    Add
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {formData.itemSpecifics.map((spec, index) => (
-                    <div key={index} className="flex gap-2 items-center">
-                      <Input 
-                        value={spec.name} 
-                        onChange={(e) => updateItemSpecific(index, 'name', e.target.value)}
-                        placeholder="Name"
-                        className="w-40 text-sm"
-                        data-testid={`input-specific-name-${index}`}
-                      />
-                      <Input 
-                        value={spec.value} 
-                        onChange={(e) => updateItemSpecific(index, 'value', e.target.value)}
-                        placeholder="Value"
-                        className="flex-1 text-sm"
-                        data-testid={`input-specific-value-${index}`}
-                      />
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => removeItemSpecific(index)}
-                        className="shrink-0"
-                        data-testid={`button-remove-specific-${index}`}
-                      >
-                        <Trash2 className="w-4 h-4 text-muted-foreground" />
-                      </Button>
-                    </div>
-                  ))}
-                  {formData.itemSpecifics.length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      No item specifics yet. Click "Add" to add specifics like Brand, Model, Color, etc.
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">Product Features</CardTitle>
-                  <Button variant="outline" size="sm" onClick={addProductFeature} data-testid="button-add-feature">
-                    <Plus className="w-4 h-4 mr-1" />
-                    Add
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {formData.productFeatures.map((feature, index) => (
-                    <div key={index} className="flex gap-2 items-center">
-                      <Input 
-                        value={feature} 
-                        onChange={(e) => updateProductFeature(index, e.target.value)}
-                        placeholder="Feature description"
-                        className="flex-1 text-sm"
-                        data-testid={`input-feature-${index}`}
-                      />
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={() => removeProductFeature(index)}
-                        className="shrink-0"
-                        data-testid={`button-remove-feature-${index}`}
-                      >
-                        <Trash2 className="w-4 h-4 text-muted-foreground" />
-                      </Button>
-                    </div>
-                  ))}
-                  {formData.productFeatures.length === 0 && (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      No product features yet. Add key selling points for your listing.
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">Description HTML</CardTitle>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setShowPreview(!showPreview)}
-                    data-testid="button-toggle-preview"
-                  >
-                    {showPreview ? <Code className="w-4 h-4 mr-1" /> : <Eye className="w-4 h-4 mr-1" />}
-                    {showPreview ? 'Edit' : 'Preview'}
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {showPreview ? (
-                  <div 
-                    className="border rounded-lg p-4 bg-white min-h-[300px]"
-                    dangerouslySetInnerHTML={{ __html: formData.descriptionHtml }}
-                    data-testid="div-description-preview"
-                  />
-                ) : (
-                  <Textarea 
-                    value={formData.descriptionHtml} 
-                    onChange={(e) => setFormData({...formData, descriptionHtml: e.target.value})}
-                    className="min-h-[300px] font-mono text-xs"
-                    placeholder="Enter HTML description..."
-                    data-testid="textarea-description-html"
-                  />
+            <div className="space-y-6">
+              <div className="flex items-center justify-between px-1">
+                <h4 className="text-[12px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em]">Item Specifics</h4>
+                <Button variant="ghost" size="sm" onClick={addItemSpecific} className="h-7 text-[10px] font-bold uppercase tracking-wider text-primary" data-testid="button-add-specific">
+                  <Plus className="w-3 h-3 mr-1" /> Add Field
+                </Button>
+              </div>
+              <div className="bg-muted/[0.03] p-6 rounded-2xl border border-border/40 shadow-sm space-y-3">
+                {formData.itemSpecifics.map((spec, index) => (
+                  <div key={index} className="flex gap-3 items-center animate-in fade-in slide-in-from-left-2 duration-300">
+                    <Input 
+                      value={spec.name} 
+                      onChange={(e) => updateItemSpecific(index, 'name', e.target.value)}
+                      placeholder="Property"
+                      className="w-1/3 h-10 text-[13px] font-bold bg-background border-border/40"
+                      data-testid={`input-specific-name-${index}`}
+                    />
+                    <Input 
+                      value={spec.value} 
+                      onChange={(e) => updateItemSpecific(index, 'value', e.target.value)}
+                      placeholder="Value"
+                      className="flex-1 h-10 text-[13px] bg-background border-border/40"
+                      data-testid={`input-specific-value-${index}`}
+                    />
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={() => removeItemSpecific(index)}
+                      className="h-10 w-10 text-muted-foreground/30 hover:text-red-500 transition-colors"
+                      data-testid={`button-remove-specific-${index}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                ))}
+                {formData.itemSpecifics.length === 0 && (
+                  <p className="text-[13px] text-muted-foreground/40 font-medium text-center py-6 italic border-2 border-dashed border-border/20 rounded-xl">
+                    No specific properties defined.
+                  </p>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Additional Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="whatsIncluded">What's Included</Label>
-                  <Textarea 
-                    id="whatsIncluded" 
-                    value={formData.whatsIncluded} 
-                    onChange={(e) => setFormData({...formData, whatsIncluded: e.target.value})}
-                    placeholder="List what's included with the item..."
-                    className="min-h-[60px]"
-                    data-testid="textarea-whats-included"
-                  />
-                </div>
-              </CardContent>
-            </Card>
+            <div className="space-y-6">
+               <h4 className="text-[12px] font-bold text-muted-foreground/40 uppercase tracking-[0.2em] px-1">Rich Description</h4>
+               <div className="bg-muted/[0.03] p-2 rounded-2xl border border-border/40 shadow-sm">
+                  <div className="flex bg-muted/50 p-1 rounded-xl mb-2 w-fit mx-2 mt-2">
+                    <button 
+                      onClick={() => setShowPreview(false)}
+                      className={cn(
+                        "px-4 py-1.5 text-[11px] font-bold rounded-lg transition-all uppercase tracking-wider",
+                        !showPreview ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      Source
+                    </button>
+                    <button 
+                      onClick={() => setShowPreview(true)}
+                      className={cn(
+                        "px-4 py-1.5 text-[11px] font-bold rounded-lg transition-all uppercase tracking-wider",
+                        showPreview ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      Preview
+                    </button>
+                  </div>
+                  
+                  {showPreview ? (
+                    <div className="p-4 bg-white rounded-xl min-h-[400px] shadow-inner m-1 overflow-auto">
+                       <div 
+                        className="prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={{ __html: formData.descriptionHtml }}
+                        data-testid="div-description-preview"
+                      />
+                    </div>
+                  ) : (
+                    <Textarea 
+                      value={formData.descriptionHtml} 
+                      onChange={(e) => setFormData({...formData, descriptionHtml: e.target.value})}
+                      className="min-h-[400px] font-mono text-[12px] bg-background border-none focus-visible:ring-0 resize-none p-6"
+                      placeholder="Enter HTML description..."
+                      data-testid="textarea-description-html"
+                    />
+                  )}
+               </div>
+            </div>
 
-            <Card className="border-blue-200 dark:border-blue-900">
-              <CardHeader className="pb-3">
+            <Card className="border-primary/20 bg-primary/[0.02] overflow-hidden rounded-2xl">
+              <CardHeader className="pb-4 bg-primary/[0.03] border-b border-primary/10">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base flex items-center gap-2">
+                  <CardTitle className="text-[15px] font-bold flex items-center gap-2 text-primary/80">
                     <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                       <path d="M7.5 5.5h-4v13h4v-13zM12 5.5H8v13h4v-13zm8.5 0h-4v13h4v-13zM16.5 5.5h-4v13h4v-13z" fill="#E53238"/>
                       <path d="M7.5 5.5h-4v13h4v-13z" fill="#0064D2"/>
                       <path d="M12 5.5H8v13h4v-13z" fill="#F5AF02"/>
                       <path d="M16.5 5.5h-4v13h4v-13z" fill="#86B817"/>
                     </svg>
-                    Push to eBay
+                    Marketplace Integration
                   </CardTitle>
                   {ebayStatus?.connected ? (
-                    <div className="flex items-center gap-2">
-                      <span className="flex items-center gap-1 text-sm text-emerald-600">
-                        <CheckCircle2 className="w-4 h-4" />
-                        Connected
-                      </span>
-                      <Button variant="ghost" size="sm" onClick={handleDisconnectEbay} data-testid="button-disconnect-ebay">
-                        Disconnect
-                      </Button>
-                    </div>
+                    <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] font-bold uppercase tracking-widest">
+                      Live Connection
+                    </Badge>
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <XCircle className="w-4 h-4" />
-                        Not connected
-                      </span>
-                    </div>
+                    <Badge variant="outline" className="text-muted-foreground/50 text-[10px] font-bold uppercase tracking-widest border-border/50">
+                      Disconnected
+                    </Badge>
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="pt-6 space-y-6">
                 {ebayPushResult && (
-                  <div className={cn(
-                    "p-3 rounded-lg text-sm",
-                    ebayPushResult.success 
-                      ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-300" 
-                      : "bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300"
-                  )}>
-                    {ebayPushResult.message}
-                  </div>
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className={cn(
+                      "p-4 rounded-xl text-[13px] font-medium border shadow-sm",
+                      ebayPushResult.success 
+                        ? "bg-emerald-50 border-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-300" 
+                        : "bg-red-50 border-red-100 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300"
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                       {ebayPushResult.success ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
+                       {ebayPushResult.message}
+                    </div>
+                  </motion.div>
                 )}
 
                 {!ebayStatus?.hasCredentials ? (
-                  <div className="text-sm text-muted-foreground p-4 bg-muted/50 rounded-lg">
-                    <p className="font-medium mb-2">eBay API credentials not configured</p>
-                    <p>To push listings directly to eBay, add your eBay Developer credentials (Client ID and Client Secret) in the Secrets tab.</p>
+                  <div className="text-[13px] text-muted-foreground/70 p-5 bg-background/50 rounded-xl border border-border/40">
+                    <p className="font-bold text-foreground/80 mb-2">API Credentials Required</p>
+                    <p>To synchronize directly with eBay Seller Hub, please provide your developer credentials in the global settings.</p>
                   </div>
                 ) : !ebayStatus?.connected ? (
-                  <div className="space-y-3">
-                    <p className="text-sm text-muted-foreground">
-                      Connect your eBay seller account to push listings directly as drafts.
+                  <div className="space-y-4">
+                    <p className="text-[13px] text-muted-foreground/70 leading-relaxed font-medium">
+                      Authenticate your eBay seller account to enable direct draft synchronization.
                     </p>
-                    <Button onClick={handleConnectEbay} className="w-full" data-testid="button-connect-ebay">
+                    <Button onClick={handleConnectEbay} className="w-full h-11 text-[13px] font-bold shadow-lg shadow-primary/10" data-testid="button-connect-ebay">
                       <ExternalLink className="w-4 h-4 mr-2" />
-                      Connect eBay Account
+                      Authorize eBay Account
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    <p className="text-sm text-muted-foreground">
-                      Push this listing to your eBay account as a draft. You can then review and publish it from eBay Seller Hub.
-                    </p>
+                  <div className="space-y-5">
+                    <div className="flex items-start gap-4 p-4 bg-background/50 rounded-xl border border-border/40">
+                       <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center shrink-0 border border-emerald-500/10">
+                          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                       </div>
+                       <div>
+                          <p className="text-[13px] font-bold text-foreground/80">Account Linked</p>
+                          <p className="text-[12px] text-muted-foreground/60">Your eBay account is ready for synchronization.</p>
+                       </div>
+                    </div>
+                    
                     {existingListing?.status === 'ready' && (
-                      <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg text-sm text-emerald-700 dark:text-emerald-300">
-                        This listing has already been pushed to eBay.
+                      <div className="p-3 bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100/50 rounded-lg text-[12px] font-medium text-blue-600 flex items-center gap-2">
+                        <Code className="w-3.5 h-3.5" />
+                        This listing version is already synced with eBay.
                       </div>
                     )}
-                    <Button 
-                      onClick={handlePushToEbay} 
-                      disabled={isPushingToEbay || !existingListing || existingListing?.status === 'ready'}
-                      className="w-full"
-                      data-testid="button-push-to-ebay"
-                    >
-                      {isPushingToEbay ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Pushing to eBay...
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-4 h-4 mr-2" />
-                          Push to eBay as Draft
-                        </>
+                    
+                    <div className="flex flex-col gap-3">
+                      <Button 
+                        onClick={handlePushToEbay} 
+                        disabled={isPushingToEbay || !existingListing || existingListing?.status === 'ready'}
+                        className="w-full h-12 text-[14px] font-bold shadow-lg shadow-primary/10 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                        data-testid="button-push-to-ebay"
+                      >
+                        {isPushingToEbay ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Synchronizing...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-4 h-4 mr-2" />
+                            Push Draft to eBay
+                          </>
+                        )}
+                      </Button>
+                      {!existingListing && (
+                        <p className="text-[11px] text-muted-foreground/40 text-center font-bold uppercase tracking-widest">
+                          Save draft before pushing
+                        </p>
                       )}
-                    </Button>
-                    {!existingListing && (
-                      <p className="text-xs text-muted-foreground text-center">
-                        Save your listing first before pushing to eBay
-                      </p>
-                    )}
+                      <Button variant="ghost" size="sm" onClick={handleDisconnectEbay} className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/40 hover:text-red-400" data-testid="button-disconnect-ebay">
+                        Revoke Access
+                      </Button>
+                    </div>
                   </div>
                 )}
               </CardContent>

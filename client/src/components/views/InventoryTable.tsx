@@ -310,38 +310,38 @@ export function InventoryTable() {
   };
 
   return (
-    <div className="flex flex-col h-full space-y-4 p-8 max-w-[1600px] mx-auto w-full relative">
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+    <div className="flex flex-col h-full space-y-6 p-8 max-w-[1600px] mx-auto w-full relative overflow-hidden">
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between px-2">
         <div className="space-y-1">
-          <h2 className="text-2xl font-bold tracking-tight">Inventory</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground/90">Inventory</h2>
+          <p className="text-[13px] text-muted-foreground font-medium">
             Manage your inventory and create listings for eBay.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {syncMessage && (
-            <span className="text-sm text-muted-foreground">{syncMessage}</span>
+            <span className="text-[12px] font-medium text-emerald-600 animate-in fade-in slide-in-from-right-2">{syncMessage}</span>
           )}
           <Button 
             variant="outline" 
             onClick={handleSync}
             disabled={isSyncing}
-            className="gap-2 min-w-[180px]"
+            className="h-9 px-4 text-[13px] font-medium gap-2 border-border/60 hover:bg-muted/50 transition-all active:scale-[0.98]"
             data-testid="button-sync-wholecell"
           >
             {isSyncing ? (
-              <div className="flex items-center gap-2 w-full">
-                <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden min-w-[80px]">
+              <div className="flex items-center gap-3 w-full">
+                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden min-w-[80px]">
                   <div 
                     className="h-full bg-primary transition-all duration-300" 
                     style={{ width: `${syncProgress}%` }}
                   />
                 </div>
-                <span className="text-xs whitespace-nowrap">{syncProgress}%</span>
+                <span className="text-[11px] font-mono tabular-nums">{syncProgress}%</span>
               </div>
             ) : (
               <>
-                <RefreshCw className="w-4 h-4" />
+                <RefreshCw className={cn("w-3.5 h-3.5", isSyncing && "animate-spin")} />
                 Sync with WholeCell
               </>
             )}
@@ -349,100 +349,67 @@ export function InventoryTable() {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
-        <div className="relative w-full sm:w-96">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-muted/30 p-2 rounded-xl border border-border/50">
+        <div className="relative w-full sm:w-80 group">
+          <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
           <Input 
-            placeholder="Search by SKU, Name, or Brand..." 
-            className="pl-9"
+            placeholder="Quick search..." 
+            className="pl-9 h-9 bg-background/50 border-transparent focus:border-border/50 focus:bg-background text-[13px] rounded-lg transition-all"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto pb-2 sm:pb-0">
-          <div className="flex bg-muted p-1 rounded-lg">
+        <div className="flex items-center gap-2">
+          <div className="flex bg-background/50 p-1 rounded-lg border border-border/50 shadow-sm">
             {(['all', 'new', 'photos_completed', 'listing_generated'] as const).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
                 className={cn(
-                  "px-3 py-1.5 text-sm font-medium rounded-md transition-all capitalize whitespace-nowrap",
+                  "px-3 py-1 text-[12px] font-medium rounded-md transition-all capitalize whitespace-nowrap",
                   filter === f 
-                    ? "bg-background shadow-sm text-foreground" 
-                    : "text-muted-foreground hover:bg-background/50 hover:text-foreground"
+                    ? "bg-background shadow-sm text-foreground ring-1 ring-border/5" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
                 )}
               >
-                {f === 'all' ? 'All' : f === 'new' ? 'New' : f === 'photos_completed' ? 'Photos Done' : 'Listing Done'}
+                {f === 'all' ? 'All' : f === 'new' ? 'New' : f === 'photos_completed' ? 'Photos' : 'Ready'}
               </button>
             ))}
           </div>
-          <Button variant="outline" size="icon" className="shrink-0">
-            <Filter className="w-4 h-4" />
+          <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground border border-transparent hover:border-border/50 hover:bg-background/50">
+            <Filter className="w-3.5 h-3.5" />
           </Button>
         </div>
       </div>
 
-      <div className="rounded-md border bg-card shadow-sm overflow-hidden relative flex-1 flex flex-col min-h-0">
-        <div className="overflow-auto flex-1">
+      <div className="rounded-xl border border-border/50 bg-background shadow-sm overflow-hidden relative flex-1 flex flex-col min-h-0">
+        <div className="overflow-auto flex-1 custom-scrollbar">
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/50 hover:bg-muted/50">
-              <TableHead className="w-[40px] pl-4">
+            <TableRow className="bg-muted/30 hover:bg-muted/30 border-b border-border/50">
+              <TableHead className="w-[40px] pl-6">
                 <Checkbox 
                   checked={filteredItems.length > 0 && selectedRows.size === filteredItems.length}
                   onCheckedChange={toggleSelectAll}
-                  aria-label="Select all"
+                  className="rounded-[4px] border-muted-foreground/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                 />
               </TableHead>
-              <TableHead className="w-[80px]">Image</TableHead>
+              <TableHead className="w-[80px] text-[12px] font-bold uppercase tracking-wider text-muted-foreground/70">Preview</TableHead>
               <TableHead 
-                className="min-w-[300px] cursor-pointer hover:bg-muted/80 select-none"
+                className="min-w-[300px] cursor-pointer hover:bg-muted/40 select-none text-[12px] font-bold uppercase tracking-wider text-muted-foreground/70"
                 onClick={() => toggleSort('name')}
               >
                 <div className="flex items-center">
-                  Product Details
+                  Product
                   {getSortIcon('name')}
                 </div>
               </TableHead>
+              <TableHead className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground/70">Info</TableHead>
+              <TableHead className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground/70">Status</TableHead>
+              <TableHead className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground/70">eBay</TableHead>
               <TableHead 
-                className="cursor-pointer hover:bg-muted/80 select-none"
-                onClick={() => toggleSort('condition')}
-              >
-                <div className="flex items-center">
-                  Condition
-                  {getSortIcon('condition')}
-                </div>
-              </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-muted/80 select-none"
-                onClick={() => toggleSort('status')}
-              >
-                <div className="flex items-center">
-                  Status
-                  {getSortIcon('status')}
-                </div>
-              </TableHead>
-              <TableHead 
-                className="w-[120px] cursor-pointer hover:bg-muted/80 select-none"
-                onClick={() => toggleSort('listed')}
-              >
-                <div className="flex items-center">
-                  Listed
-                  {getSortIcon('listed')}
-                </div>
-              </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-muted/80 select-none"
-                onClick={() => toggleSort('createdAt')}
-              >
-                <div className="flex items-center">
-                  Created
-                  {getSortIcon('createdAt')}
-                </div>
-              </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-muted/80 select-none"
+                className="cursor-pointer hover:bg-muted/40 select-none text-[12px] font-bold uppercase tracking-wider text-muted-foreground/70"
                 onClick={() => toggleSort('lastUpdated')}
               >
                 <div className="flex items-center">
@@ -450,7 +417,7 @@ export function InventoryTable() {
                   {getSortIcon('lastUpdated')}
                 </div>
               </TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-right pr-6 text-[12px] font-bold uppercase tracking-wider text-muted-foreground/70">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -469,23 +436,20 @@ export function InventoryTable() {
                 <React.Fragment key={group.sku}>
                   <TableRow 
                     className={cn(
-                      "cursor-pointer transition-colors",
-                      hasMultiple && "bg-muted/30",
-                      hasMultiple && groupSelectionState !== 'none' ? "bg-primary/5 hover:bg-primary/10" : 
-                      selectedRows.has(item.id) ? "bg-primary/5 hover:bg-primary/10" : "hover:bg-muted/50"
+                      "group cursor-pointer transition-all border-b border-border/40",
+                      hasMultiple && "bg-muted/[0.15]",
+                      (selectedRows.has(item.id) || groupSelectionState !== 'none') ? "bg-primary/[0.03] hover:bg-primary/[0.05]" : "hover:bg-muted/[0.2]"
                     )}
                     onClick={() => hasMultiple ? toggleGroup(group.sku) : selectItem(item.id)}
                   >
-                    <TableCell className="pl-4" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center gap-1">
+                    <TableCell className="pl-6" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center gap-2">
                         {hasMultiple && (
                           <motion.div
                             animate={{ rotate: isExpanded ? 90 : 0 }}
-                            transition={{ duration: 0.2 }}
-                            className="cursor-pointer"
-                            onClick={() => toggleGroup(group.sku)}
+                            className="text-muted-foreground/40 group-hover:text-muted-foreground/70 transition-colors"
                           >
-                            <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                            <ChevronRight className="w-3.5 h-3.5" />
                           </motion.div>
                         )}
                         <Checkbox 
@@ -496,127 +460,97 @@ export function InventoryTable() {
                             }
                           }}
                           onCheckedChange={() => hasMultiple ? toggleGroupSelection(group.items) : toggleRow(item.id)}
-                          aria-label={hasMultiple ? `Select all ${group.count} ${item.name}` : `Select ${item.name}`}
+                          className="rounded-[4px] border-muted-foreground/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                         />
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="h-12 w-12 rounded-md bg-muted overflow-hidden border relative">
+                      <div className="h-10 w-10 rounded-lg bg-muted/50 overflow-hidden border border-border/50 relative shadow-sm group-hover:scale-105 transition-transform duration-300">
                         {item.photos[0] ? (
                           <img src={item.photos[0]} alt="" className="h-full w-full object-cover" />
                         ) : (
-                          <div className="h-full w-full flex items-center justify-center text-muted-foreground">
-                            <Package className="w-6 h-6 opacity-20" />
+                          <div className="h-full w-full flex items-center justify-center text-muted-foreground/30">
+                            <Package className="w-5 h-5" />
                           </div>
                         )}
                         {hasMultiple && (
-                          <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
+                          <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-md">
                             {group.count}
                           </div>
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-col">
+                      <div className="flex flex-col gap-0.5">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{item.name}</span>
+                          <span className="font-semibold text-[14px] text-foreground/85 tracking-tight truncate max-w-[400px]">
+                            {item.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-mono text-muted-foreground/60">{item.sku}</span>
                           {hasMultiple && (
-                            <Badge variant="secondary" className="text-xs px-1.5 py-0">
-                              <Layers className="w-3 h-3 mr-1" />
-                              {group.count} units
-                            </Badge>
+                            <span className="text-[10px] font-bold text-primary/60 bg-primary/5 px-1.5 py-0 rounded uppercase tracking-wider border border-primary/10">
+                              {group.count} Variants
+                            </span>
                           )}
                         </div>
-                        <span className="text-xs text-muted-foreground font-mono mt-0.5">{item.sku}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="font-normal">
+                      <Badge variant="outline" className="font-semibold text-[10px] uppercase tracking-wider border-border/50 text-muted-foreground/80 bg-muted/30">
                         {item.condition}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       {hasMultiple && Object.keys(statusCounts).length > 1 ? (
-                        <div className="flex items-center gap-1 flex-wrap">
-                          {statusCounts['new'] && (
-                            <Badge variant="outline" className="font-normal border-0 text-xs bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300">
-                              {statusCounts['new']} New
-                            </Badge>
-                          )}
-                          {statusCounts['photos_completed'] && (
-                            <Badge variant="outline" className="font-normal border-0 text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
-                              {statusCounts['photos_completed']} Photos
-                            </Badge>
-                          )}
-                          {statusCounts['listing_generated'] && (
-                            <Badge variant="outline" className="font-normal border-0 text-xs bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                              {statusCounts['listing_generated']} Listed
-                            </Badge>
-                          )}
+                        <div className="flex items-center gap-1">
+                           <div className="h-1.5 w-16 bg-muted rounded-full overflow-hidden flex shadow-inner border border-border/50">
+                             <div className="h-full bg-slate-400" style={{ width: `${(statusCounts['new'] || 0) / group.count * 100}%` }} />
+                             <div className="h-full bg-amber-400" style={{ width: `${(statusCounts['photos_completed'] || 0) / group.count * 100}%` }} />
+                             <div className="h-full bg-emerald-400" style={{ width: `${(statusCounts['listing_generated'] || 0) / group.count * 100}%` }} />
+                           </div>
                         </div>
                       ) : (
-                        <Badge 
-                          variant="outline" 
-                          className={cn(
-                            "font-normal border-0",
-                            item.status === 'new' && "bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300",
-                            item.status === 'photos_completed' && "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
-                            item.status === 'listing_generated' && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
-                          )}
-                        >
-                          {item.status === 'new' && 'New'}
-                          {item.status === 'photos_completed' && 'Photos Completed'}
-                          {item.status === 'listing_generated' && 'Listing Generated'}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <div className={cn(
+                            "h-2 w-2 rounded-full shadow-sm",
+                            item.status === 'new' && "bg-slate-300",
+                            item.status === 'photos_completed' && "bg-amber-400",
+                            item.status === 'listing_generated' && "bg-emerald-500",
+                          )} />
+                          <span className="text-[12px] font-medium text-foreground/70">
+                            {item.status === 'new' && 'New'}
+                            {item.status === 'photos_completed' && 'Photos'}
+                            {item.status === 'listing_generated' && 'Ready'}
+                          </span>
+                        </div>
                       )}
                     </TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       {hasMultiple ? (
-                        <div className="flex items-center gap-2">
-                          <span className={cn(
-                            "text-xs font-medium",
-                            listedCount === group.count ? "text-emerald-600 dark:text-emerald-400" : 
-                            listedCount === 0 ? "text-muted-foreground" : "text-amber-600 dark:text-amber-400"
-                          )}>
-                            {listedCount}/{group.count} Listed
-                          </span>
+                        <div className="text-[11px] font-bold text-muted-foreground/60 tracking-tight">
+                          {listedCount}/{group.count} Listed
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
                           <Switch
                             checked={item.listed}
                             onCheckedChange={() => toggleItemListed(item.id)}
-                            className="data-[state=checked]:bg-emerald-600"
+                            className="data-[state=checked]:bg-emerald-500 scale-75 shadow-sm"
                           />
-                          <span className={cn("text-xs font-medium transition-colors", item.listed ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground")}>
-                            {item.listed ? 'Listed' : 'Draft'}
-                          </span>
                         </div>
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="text-muted-foreground text-sm">
-                        {item.createdAt ? formatDistanceToNow(new Date(item.createdAt), { addSuffix: true }) : '-'}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center text-muted-foreground text-sm">
-                        <Clock className="w-3 h-3 mr-1.5" />
+                      <div className="flex items-center text-[12px] text-muted-foreground/60 font-medium">
                         {formatDistanceToNow(new Date(group.latestUpdate), { addSuffix: true })}
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {!hasMultiple && item.status === 'listing_generated' && (
-                          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                        )}
-                        {hasMultiple && statusCounts['listing_generated'] === group.count && (
-                          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                        )}
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); selectItem(item.id); }}>
-                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                        </Button>
-                      </div>
+                    <TableCell className="text-right pr-6">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => { e.stopPropagation(); selectItem(item.id); }}>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                   
@@ -624,87 +558,71 @@ export function InventoryTable() {
                     {hasMultiple && isExpanded && group.items.map((subItem, index) => (
                       <motion.tr
                         key={subItem.id}
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: 'auto' }}
-                        exit={{ opacity: 0, height: 0 }}
-                        transition={{ duration: 0.2, delay: index * 0.03 }}
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        transition={{ duration: 0.15, delay: index * 0.02 }}
                         className={cn(
-                          "cursor-pointer transition-colors border-l-2 border-primary/30",
-                          selectedRows.has(subItem.id) ? "bg-primary/5 hover:bg-primary/10" : "bg-muted/10 hover:bg-muted/30"
+                          "cursor-pointer transition-colors border-b border-border/30",
+                          selectedRows.has(subItem.id) ? "bg-primary/[0.02] hover:bg-primary/[0.04]" : "bg-muted/[0.03] hover:bg-muted/[0.08]"
                         )}
                         onClick={() => selectItem(subItem.id)}
                       >
-                        <TableCell className="pl-6" onClick={(e) => e.stopPropagation()}>
+                        <TableCell className="pl-12" onClick={(e) => e.stopPropagation()}>
                           <Checkbox 
                             checked={selectedRows.has(subItem.id)}
                             onCheckedChange={() => toggleRow(subItem.id)}
-                            aria-label={`Select ${subItem.name}`}
+                            className="rounded-[3px] border-muted-foreground/30 data-[state=checked]:bg-primary data-[state=checked]:border-primary scale-90"
                           />
                         </TableCell>
                         <TableCell>
-                          <div className="h-10 w-10 rounded-md bg-muted overflow-hidden border ml-2">
+                          <div className="h-8 w-8 rounded-md bg-muted/30 overflow-hidden border border-border/40 ml-1">
                             {subItem.photos[0] ? (
                               <img src={subItem.photos[0]} alt="" className="h-full w-full object-cover" />
                             ) : (
-                              <div className="h-full w-full flex items-center justify-center text-muted-foreground">
-                                <Package className="w-5 h-5 opacity-20" />
+                              <div className="h-full w-full flex items-center justify-center text-muted-foreground/20">
+                                <Package className="w-4 h-4" />
                               </div>
                             )}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="flex flex-col pl-2">
-                            <span className="text-sm text-muted-foreground">ID: {subItem.id.slice(0, 8)}...</span>
-                            <span className="text-xs text-muted-foreground/70 font-mono">{subItem.sku}</span>
+                          <div className="flex flex-col pl-1">
+                            <span className="text-[11px] font-mono text-muted-foreground/40">ID: {subItem.id.slice(0, 8)}</span>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="font-normal text-xs">
-                            {subItem.condition}
-                          </Badge>
+                          <span className="text-[11px] font-medium text-muted-foreground/60 capitalize">{subItem.condition}</span>
                         </TableCell>
                         <TableCell>
-                          <Badge 
-                            variant="outline" 
-                            className={cn(
-                              "font-normal border-0 text-xs",
-                              subItem.status === 'new' && "bg-slate-100 text-slate-700 dark:bg-slate-900/30 dark:text-slate-300",
-                              subItem.status === 'photos_completed' && "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
-                              subItem.status === 'listing_generated' && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
-                            )}
-                          >
-                            {subItem.status === 'new' && 'New'}
-                            {subItem.status === 'photos_completed' && 'Photos Completed'}
-                            {subItem.status === 'listing_generated' && 'Listing Generated'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={subItem.listed}
-                              onCheckedChange={() => toggleItemListed(subItem.id)}
-                              className="data-[state=checked]:bg-emerald-600 scale-90"
-                            />
-                            <span className={cn("text-xs font-medium transition-colors", subItem.listed ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground")}>
-                              {subItem.listed ? 'Listed' : 'Draft'}
+                          <div className="flex items-center gap-1.5">
+                            <div className={cn(
+                              "h-1.5 w-1.5 rounded-full",
+                              subItem.status === 'new' && "bg-slate-300",
+                              subItem.status === 'photos_completed' && "bg-amber-400",
+                              subItem.status === 'listing_generated' && "bg-emerald-500",
+                            )} />
+                            <span className="text-[11px] font-medium text-muted-foreground/60">
+                              {subItem.status === 'new' && 'New'}
+                              {subItem.status === 'photos_completed' && 'Photos'}
+                              {subItem.status === 'listing_generated' && 'Ready'}
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <div className="text-muted-foreground text-xs">
-                            {subItem.createdAt ? formatDistanceToNow(new Date(subItem.createdAt), { addSuffix: true }) : '-'}
-                          </div>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <Switch
+                            checked={subItem.listed}
+                            onCheckedChange={() => toggleItemListed(subItem.id)}
+                            className="data-[state=checked]:bg-emerald-500 scale-[0.65] opacity-60 shadow-none"
+                          />
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center text-muted-foreground text-xs">
-                            <Clock className="w-3 h-3 mr-1" />
+                          <div className="text-[11px] text-muted-foreground/40 font-medium">
                             {formatDistanceToNow(new Date(subItem.lastUpdated), { addSuffix: true })}
                           </div>
                         </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" className="h-7 w-7">
-                            <ChevronRight className="w-3 h-3 text-muted-foreground" />
-                          </Button>
+                        <TableCell className="text-right pr-6">
+                           <ChevronRight className="w-3 h-3 text-muted-foreground/30 inline-block mr-2" />
                         </TableCell>
                       </motion.tr>
                     ))}
@@ -714,8 +632,12 @@ export function InventoryTable() {
             })}
             {skuGroups.length === 0 && (
               <TableRow>
-                <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">
-                  No items found matching your search.
+                <TableCell colSpan={9} className="h-40 text-center">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Package className="w-10 h-10 text-muted/20" />
+                    <p className="text-[14px] font-medium text-muted-foreground">No items found</p>
+                    <p className="text-[12px] text-muted-foreground/50">Try adjusting your filters or sync with WholeCell</p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -728,27 +650,30 @@ export function InventoryTable() {
       <AnimatePresence>
         {selectedRows.size > 0 && (
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 bg-foreground text-background px-6 py-3 rounded-full shadow-xl flex items-center gap-6"
+            initial={{ opacity: 0, y: 20, x: '-50%' }}
+            animate={{ opacity: 1, y: 0, x: '-50%' }}
+            exit={{ opacity: 0, y: 20, x: '-50%' }}
+            className="fixed bottom-10 left-1/2 z-40 bg-foreground text-background px-6 py-2.5 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center gap-6 border border-background/10"
           >
             <div className="flex items-center gap-3 border-r border-background/20 pr-6">
-              <span className="font-medium">{selectedRows.size} selected</span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <span className="text-[13px] font-bold tracking-tight">{selectedRows.size} selected</span>
+              <button 
                 onClick={clearSelection}
-                className="h-6 px-2 text-xs hover:bg-background/20 hover:text-background text-background/60"
+                className="text-[11px] font-bold text-background/50 hover:text-background transition-colors uppercase tracking-wider"
               >
                 Clear
-              </Button>
+              </button>
             </div>
             
-            <div className="flex items-center gap-2">
-              <Button size="sm" variant="ghost" className="h-8 hover:bg-red-500/20 hover:text-red-400 text-red-400">
-                <Trash2 className="w-3.5 h-3.5" />
-              </Button>
+            <div className="flex items-center gap-4">
+               <button className="text-[12px] font-bold hover:text-primary-foreground/80 transition-colors flex items-center gap-2">
+                 <Globe className="w-3.5 h-3.5" />
+                 Export to eBay
+               </button>
+               <button className="text-[12px] font-bold text-red-400 hover:text-red-300 transition-colors flex items-center gap-2">
+                 <Trash2 className="w-3.5 h-3.5" />
+                 Delete
+               </button>
             </div>
           </motion.div>
         )}
