@@ -261,10 +261,6 @@ export function InventoryTable() {
               </>
             )}
           </Button>
-          <Button>
-            <Package className="w-4 h-4 mr-2" />
-            Add Manual Item
-          </Button>
         </div>
       </div>
 

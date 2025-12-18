@@ -56,7 +56,7 @@ export function Dashboard() {
           </Button>
           <Separator orientation="vertical" className="h-6" />
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">WholeCell Inc.</span>
+            <span className="text-sm font-medium">815 Buy Back</span>
             <div className="h-8 w-8 bg-muted rounded-full flex items-center justify-center">
                <UserCircle className="w-5 h-5 text-muted-foreground" />
             </div>
