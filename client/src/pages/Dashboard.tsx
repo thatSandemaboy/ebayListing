@@ -7,7 +7,6 @@ import { ItemDetails } from '@/components/views/ItemDetails';
 import { PhotoManager } from '@/components/views/PhotoManager';
 import { ListingGenerator } from '@/components/views/ListingGenerator';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { UserCircle, Settings, Check, LayoutDashboard, Clock } from 'lucide-react';
 import {
@@ -20,7 +19,6 @@ export function Dashboard() {
   const { selectedItem, selectItem } = useApp();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Sync dialog state with selection
   useEffect(() => {
     if (selectedItem) {
       setIsDialogOpen(true);
@@ -38,54 +36,50 @@ export function Dashboard() {
 
   return (
     <AppShell>
-      {/* Top Bar */}
-      <header className="h-14 border-b bg-background/80 backdrop-blur-md flex items-center justify-between px-6 z-20 shrink-0 sticky top-0">
+      <header className="h-12 border-b border-border bg-card flex items-center justify-between px-4 z-20 shrink-0 sticky top-0">
         <div className="flex items-center gap-3">
-          <div className="w-7 h-7 bg-primary rounded-md flex items-center justify-center text-primary-foreground font-bold shadow-sm">
+          <div className="w-6 h-6 bg-primary rounded flex items-center justify-center text-primary-foreground text-sm font-semibold">
             E
           </div>
-          <h1 className="font-semibold text-[15px] tracking-tight text-foreground">eBay Listing</h1>
-          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 font-medium uppercase tracking-wider opacity-60">Pro</Badge>
+          <h1 className="font-medium text-sm text-foreground">eBay Listing</h1>
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 font-medium uppercase tracking-wide">Pro</Badge>
         </div>
         
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" className="text-muted-foreground h-8 text-[13px] px-3">
-            <LayoutDashboard className="w-3.5 h-3.5 mr-2" />
+          <Button variant="ghost" size="sm" className="text-muted-foreground h-8 text-sm px-3">
+            <LayoutDashboard className="w-4 h-4 mr-2" />
             Inventory
           </Button>
-          <Button variant="ghost" size="sm" className="text-muted-foreground h-8 text-[13px] px-3">
-            <Settings className="w-3.5 h-3.5 mr-2" />
+          <Button variant="ghost" size="sm" className="text-muted-foreground h-8 text-sm px-3">
+            <Settings className="w-4 h-4 mr-2" />
             Settings
           </Button>
-          <div className="w-[1px] h-4 bg-border mx-2" />
+          <div className="w-px h-4 bg-border mx-2" />
           <div className="flex items-center gap-2 pl-2">
-            <span className="text-[13px] font-medium text-foreground/80">815 Buy Back</span>
-            <div className="h-7 w-7 bg-muted rounded-full flex items-center justify-center overflow-hidden border border-border">
+            <span className="text-sm font-medium text-foreground">815 Buy Back</span>
+            <div className="h-7 w-7 bg-secondary rounded-full flex items-center justify-center border border-border">
                <UserCircle className="w-4 h-4 text-muted-foreground" />
             </div>
           </div>
         </div>
       </header>
 
-      {/* Main Content - Full Width Table */}
-      <main className="flex-1 overflow-auto bg-muted/10">
+      <main className="flex-1 overflow-auto bg-background">
         <InventoryTable />
       </main>
 
-      {/* Centered Dialog Popover */}
       <Dialog open={isDialogOpen} onOpenChange={handleDialogOpenChange}>
-        <DialogContent className="max-w-4xl h-[85vh] p-0 flex flex-col gap-0 overflow-hidden border-border/50 shadow-2xl bg-background/98 backdrop-blur-xl rounded-xl">
+        <DialogContent className="max-w-4xl h-[85vh] p-0 flex flex-col gap-0 overflow-hidden border-border bg-background">
           {selectedItem && (
             <>
-              {/* Dialog Header - Fixed */}
-              <div className="border-b px-8 py-6 bg-background/50 z-10 shrink-0">
+              <div className="border-b border-border px-6 py-5 bg-card z-10 shrink-0">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <DialogTitle className="text-2xl font-bold tracking-tight text-foreground/90 leading-tight pr-12">
+                    <DialogTitle className="text-lg font-semibold text-foreground leading-tight pr-12">
                       {selectedItem.name}
                     </DialogTitle>
-                    <div className="flex items-center gap-3 text-[13px] text-muted-foreground/70 font-medium">
-                      <span className="font-mono bg-muted/50 text-foreground/60 px-2 py-0.5 rounded text-[11px] border border-border/50">
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <span className="font-mono bg-secondary text-foreground px-2 py-0.5 rounded text-xs border border-border">
                         {selectedItem.sku}
                       </span>
                       <span className="w-1 h-1 rounded-full bg-border" />
@@ -100,74 +94,69 @@ export function Dashboard() {
                 </div>
               </div>
 
-              {/* Dialog Content - Vertical Scrollable Layout */}
-              <div className="flex-1 overflow-y-auto bg-muted/5 scroll-smooth custom-scrollbar">
-                <div className="max-w-3xl mx-auto py-10 px-8 space-y-12">
-                  {/* Section 1: Details */}
-                  <section className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 text-primary text-[13px] flex items-center justify-center font-bold border border-primary/20 shadow-sm">
+              <div className="flex-1 overflow-y-auto bg-background">
+                <div className="max-w-3xl mx-auto py-8 px-6 space-y-8">
+                  <section>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-7 h-7 rounded-full bg-secondary text-muted-foreground text-xs flex items-center justify-center font-medium border border-border">
                         1
                       </div>
-                      <h3 className="text-[17px] font-semibold tracking-tight">Product Details</h3>
+                      <h3 className="text-sm font-semibold">Product Details</h3>
                     </div>
-                    <div className="bg-background rounded-xl border border-border/50 p-6 shadow-sm">
+                    <div className="bg-card rounded-lg border border-border p-5">
                       <ItemDetails item={selectedItem} />
                     </div>
                   </section>
 
-                  {/* Section 2: Photos */}
-                  <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 text-primary text-[13px] flex items-center justify-center font-bold border border-primary/20 shadow-sm">
+                  <section>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-7 h-7 rounded-full bg-secondary text-muted-foreground text-xs flex items-center justify-center font-medium border border-border">
                         2
                       </div>
-                      <h3 className="text-[17px] font-semibold tracking-tight">Photos</h3>
+                      <h3 className="text-sm font-semibold">Photos</h3>
                     </div>
-                    <div className="bg-background rounded-xl border border-border/50 p-6 shadow-sm">
+                    <div className="bg-card rounded-lg border border-border p-5">
                       <PhotoManager item={selectedItem} />
                     </div>
                   </section>
 
-                  {/* Section 3: Listing */}
-                  <section className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-200">
-                    <div className="flex items-center gap-3 mb-6">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 text-primary text-[13px] flex items-center justify-center font-bold border border-primary/20 shadow-sm">
+                  <section>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-7 h-7 rounded-full bg-secondary text-muted-foreground text-xs flex items-center justify-center font-medium border border-border">
                         3
                       </div>
-                      <h3 className="text-[17px] font-semibold tracking-tight">AI Listing Generator</h3>
+                      <h3 className="text-sm font-semibold">AI Listing Generator</h3>
                     </div>
-                    <div className="bg-background rounded-xl border border-border/50 p-6 shadow-sm">
+                    <div className="bg-card rounded-lg border border-border p-5">
                       <ListingGenerator item={selectedItem} />
                     </div>
                   </section>
 
-                  <div className="h-8" /> {/* Spacing at bottom */}
+                  <div className="h-4" />
                 </div>
               </div>
 
-              {/* Dialog Footer - Fixed Actions */}
-              <div className="border-t px-8 py-5 bg-background/80 backdrop-blur-md flex justify-between items-center shrink-0">
+              <div className="border-t border-border px-6 py-4 bg-card flex justify-between items-center shrink-0">
                  <Button 
                    variant="ghost" 
                    onClick={() => handleDialogOpenChange(false)} 
-                   className="text-muted-foreground hover:text-foreground text-[13px] h-10 px-5"
+                   className="text-muted-foreground hover:text-foreground text-sm h-9 px-4"
                  >
                    Discard Changes
                  </Button>
                  <div className="flex items-center gap-3">
                    <Button 
                      variant="outline" 
-                     className="text-[13px] h-10 px-5 border-border/60"
+                     className="text-sm h-9 px-4"
                      onClick={() => handleDialogOpenChange(false)}
                    >
                      Save Draft
                    </Button>
                    <Button 
-                     className="bg-primary hover:bg-primary/90 text-primary-foreground text-[13px] h-10 px-8 font-medium shadow-lg shadow-primary/10 transition-all hover:scale-[1.02] active:scale-[0.98]" 
+                     className="text-sm h-9 px-6" 
                      onClick={() => handleDialogOpenChange(false)}
                    >
-                     <Check className="w-3.5 h-3.5 mr-2" /> Mark as Complete
+                     <Check className="w-4 h-4 mr-2" /> Mark as Complete
                    </Button>
                  </div>
               </div>
