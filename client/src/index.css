@@ -37,6 +37,10 @@
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
   
+  --color-status-new: hsl(var(--status-new));
+  --color-status-progress: hsl(var(--status-progress));
+  --color-status-ready: hsl(var(--status-ready));
+  
   --color-sidebar: hsl(var(--sidebar));
   --color-sidebar-foreground: hsl(var(--sidebar-foreground));
   --color-sidebar-primary: hsl(var(--sidebar-primary));
@@ -53,60 +57,61 @@
 }
 
 :root {
-  /* Slate Neutral - Dark by default */
-  --background: 216 12% 13%;
-  --foreground: 218 14% 93%;
+  /* Light Mode - Clean neutral palette */
+  --background: 0 0% 98%;
+  --foreground: 222 47% 11%;
 
-  /* Card - Slightly lighter surface */
-  --card: 213 13% 17%;
-  --card-foreground: 218 14% 93%;
+  /* Card - White surface */
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
 
   /* Popover */
-  --popover: 213 13% 17%;
-  --popover-foreground: 218 14% 93%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
 
   /* Primary - Blue accent */
-  --primary: 217 91% 60%;
+  --primary: 217 91% 50%;
   --primary-foreground: 0 0% 100%;
 
   /* Secondary */
-  --secondary: 213 13% 20%;
-  --secondary-foreground: 218 14% 93%;
+  --secondary: 220 14% 96%;
+  --secondary-foreground: 222 47% 11%;
 
   /* Muted */
-  --muted: 213 13% 20%;
-  --muted-foreground: 210 12% 60%;
+  --muted: 220 14% 96%;
+  --muted-foreground: 215 16% 47%;
 
   /* Accent */
-  --accent: 213 13% 22%;
-  --accent-foreground: 218 14% 93%;
+  --accent: 220 14% 96%;
+  --accent-foreground: 222 47% 11%;
 
   /* Destructive */
-  --destructive: 0 62% 50%;
+  --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
 
   /* Status Colors */
-  --success: 142 76% 36%;
-  --warning: 38 92% 50%;
+  --status-new: 215 16% 47%;
+  --status-progress: 38 92% 50%;
+  --status-ready: 142 71% 45%;
   
   /* Border & Input */
-  --border: 213 11% 21%;
-  --input: 213 11% 21%;
-  --ring: 217 91% 60%;
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --ring: 217 91% 50%;
 
   /* Sidebar */
-  --sidebar: 216 12% 11%;
-  --sidebar-foreground: 210 12% 60%;
-  --sidebar-primary: 217 91% 60%;
+  --sidebar: 220 14% 96%;
+  --sidebar-foreground: 215 16% 47%;
+  --sidebar-primary: 217 91% 50%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 213 13% 17%;
-  --sidebar-accent-foreground: 218 14% 93%;
-  --sidebar-border: 213 11% 21%;
-  --sidebar-ring: 217 91% 60%;
+  --sidebar-accent: 220 14% 93%;
+  --sidebar-accent-foreground: 222 47% 11%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-ring: 217 91% 50%;
 }
 
 .dark {
-  /* Same as root - app is dark by default */
+  /* Dark Mode - Slate Neutral palette */
   --background: 216 12% 13%;
   --foreground: 218 14% 93%;
 
@@ -130,6 +135,11 @@
 
   --destructive: 0 62% 50%;
   --destructive-foreground: 0 0% 100%;
+
+  /* Status Colors - Dark variants */
+  --status-new: 215 14% 50%;
+  --status-progress: 38 92% 50%;
+  --status-ready: 142 76% 36%;
 
   --border: 213 11% 21%;
   --input: 213 11% 21%;

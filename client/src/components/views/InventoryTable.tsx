@@ -506,18 +506,18 @@ export function InventoryTable() {
                       {hasMultiple && Object.keys(statusCounts).length > 1 ? (
                         <div className="flex items-center gap-1">
                            <div className="h-1.5 w-16 bg-secondary rounded-full overflow-hidden flex border border-border">
-                             <div className="h-full bg-slate-500" style={{ width: `${(statusCounts['new'] || 0) / group.count * 100}%` }} />
-                             <div className="h-full bg-amber-500" style={{ width: `${(statusCounts['photos_completed'] || 0) / group.count * 100}%` }} />
-                             <div className="h-full bg-emerald-500" style={{ width: `${(statusCounts['listing_generated'] || 0) / group.count * 100}%` }} />
+                             <div className="h-full bg-status-new" style={{ width: `${(statusCounts['new'] || 0) / group.count * 100}%` }} />
+                             <div className="h-full bg-status-progress" style={{ width: `${(statusCounts['photos_completed'] || 0) / group.count * 100}%` }} />
+                             <div className="h-full bg-status-ready" style={{ width: `${(statusCounts['listing_generated'] || 0) / group.count * 100}%` }} />
                            </div>
                         </div>
                       ) : (
                         <div className="flex items-center gap-2">
                           <div className={cn(
                             "h-2 w-2 rounded-full",
-                            item.status === 'new' && "bg-slate-500",
-                            item.status === 'photos_completed' && "bg-amber-500",
-                            item.status === 'listing_generated' && "bg-emerald-500",
+                            item.status === 'new' && "bg-status-new",
+                            item.status === 'photos_completed' && "bg-status-progress",
+                            item.status === 'listing_generated' && "bg-status-ready",
                           )} />
                           <span className="text-xs text-muted-foreground">
                             {item.status === 'new' && 'New'}
@@ -537,7 +537,7 @@ export function InventoryTable() {
                           <Switch
                             checked={item.listed}
                             onCheckedChange={() => toggleItemListed(item.id)}
-                            className="data-[state=checked]:bg-emerald-500 scale-75"
+                            className="data-[state=checked]:bg-status-ready scale-75"
                           />
                         </div>
                       )}
@@ -598,9 +598,9 @@ export function InventoryTable() {
                           <div className="flex items-center gap-1.5">
                             <div className={cn(
                               "h-1.5 w-1.5 rounded-full",
-                              subItem.status === 'new' && "bg-slate-500",
-                              subItem.status === 'photos_completed' && "bg-amber-500",
-                              subItem.status === 'listing_generated' && "bg-emerald-500",
+                              subItem.status === 'new' && "bg-status-new",
+                              subItem.status === 'photos_completed' && "bg-status-progress",
+                              subItem.status === 'listing_generated' && "bg-status-ready",
                             )} />
                             <span className="text-xs text-muted-foreground">
                               {subItem.status === 'new' && 'New'}
@@ -613,7 +613,7 @@ export function InventoryTable() {
                           <Switch
                             checked={subItem.listed}
                             onCheckedChange={() => toggleItemListed(subItem.id)}
-                            className="data-[state=checked]:bg-emerald-500 scale-[0.65]"
+                            className="data-[state=checked]:bg-status-ready scale-[0.65]"
                           />
                         </TableCell>
                         <TableCell>

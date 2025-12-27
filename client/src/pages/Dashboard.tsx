@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { AppShell } from '@/components/layout/AppShell';
 import { useApp } from '@/lib/store';
+import { useTheme } from '@/lib/theme';
 import { InventoryTable } from '@/components/views/InventoryTable';
 import { ItemDetails } from '@/components/views/ItemDetails';
 import { PhotoManager } from '@/components/views/PhotoManager';
 import { ListingGenerator } from '@/components/views/ListingGenerator';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { UserCircle, Settings, Check, LayoutDashboard, Clock } from 'lucide-react';
+import { UserCircle, Settings, Check, LayoutDashboard, Clock, Sun, Moon } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -17,6 +18,7 @@ import {
 
 export function Dashboard() {
   const { selectedItem, selectItem } = useApp();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
@@ -53,6 +55,19 @@ export function Dashboard() {
           <Button variant="ghost" size="sm" className="text-muted-foreground h-8 text-sm px-3">
             <Settings className="w-4 h-4 mr-2" />
             Settings
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="text-muted-foreground h-8 w-8 p-0"
+            onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+            data-testid="button-theme-toggle"
+          >
+            {resolvedTheme === 'dark' ? (
+              <Sun className="w-4 h-4" />
+            ) : (
+              <Moon className="w-4 h-4" />
+            )}
           </Button>
           <div className="w-px h-4 bg-border mx-2" />
           <div className="flex items-center gap-2 pl-2">
