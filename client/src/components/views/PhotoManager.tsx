@@ -3,9 +3,10 @@ import { InventoryItem } from '@/lib/types';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Camera, Upload, X, GripVertical, Image as ImageIcon, Video, CircleDot, FlipHorizontal, SwitchCamera, Loader2 } from 'lucide-react';
+import { Camera, Upload, X, GripVertical, Image as ImageIcon, Video, CircleDot, FlipHorizontal, SwitchCamera, Loader2, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -34,6 +35,10 @@ export function PhotoManager({ item }: PhotoManagerProps) {
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment');
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [showStockGenerator, setShowStockGenerator] = useState(false);
+  const [stockPrompt, setStockPrompt] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState<string | null>(null);
 
   // Fetch photos from database
   const { data: photos = [], isLoading: photosLoading } = useQuery<Photo[]>({
@@ -71,6 +76,47 @@ export function PhotoManager({ item }: PhotoManagerProps) {
       queryClient.invalidateQueries({ queryKey: ['photos', item.id] });
     },
   });
+
+  // Generate stock image
+  const generateStockImage = async () => {
+    const details = item.details as any;
+    const defaultPrompt = `Professional product photography of a ${details?.brand || ''} ${details?.model || item.name}, ${details?.color || ''} color, on a clean white background, studio lighting, high resolution, e-commerce product shot`;
+    
+    const prompt = stockPrompt.trim() || defaultPrompt;
+    setIsGenerating(true);
+    setGenerationError(null);
+    
+    try {
+      const res = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, size: '1024x1024' }),
+      });
+      
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to generate image');
+      }
+      
+      const data = await res.json();
+      
+      // Convert base64 to data URL and save
+      if (data.b64_json) {
+        const dataUrl = `data:image/png;base64,${data.b64_json}`;
+        addPhotoMutation.mutate(dataUrl);
+        setShowStockGenerator(false);
+        setStockPrompt('');
+      } else if (data.url) {
+        addPhotoMutation.mutate(data.url);
+        setShowStockGenerator(false);
+        setStockPrompt('');
+      }
+    } catch (err: any) {
+      setGenerationError(err.message || 'Failed to generate image');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const startCamera = useCallback(async () => {
     setCameraError(null);
@@ -199,26 +245,94 @@ export function PhotoManager({ item }: PhotoManagerProps) {
   return (
     <div className="space-y-8 h-full flex flex-col animate-in fade-in duration-500">
       {/* Action buttons row */}
-      <div className="flex gap-4">
+      <div className="flex gap-3">
         <Button
           variant="secondary"
-          className="flex-1 h-12 text-[13px] font-bold border border-border/50 shadow-sm transition-all active:scale-[0.98]"
+          className="flex-1 h-11 text-sm border border-border"
           onClick={() => setIsCameraOpen(true)}
           data-testid="button-open-camera"
         >
-          <Video className="w-4 h-4 mr-2 text-primary" />
-          Capture Photo
+          <Video className="w-4 h-4 mr-2" />
+          Capture
         </Button>
         <Button
           variant="secondary"
-          className="flex-1 h-12 text-[13px] font-bold border border-border/50 shadow-sm transition-all active:scale-[0.98]"
+          className="flex-1 h-11 text-sm border border-border"
           onClick={() => fileInputRef.current?.click()}
           data-testid="button-upload-file"
         >
-          <Upload className="w-4 h-4 mr-2 text-primary" />
-          Upload Files
+          <Upload className="w-4 h-4 mr-2" />
+          Upload
+        </Button>
+        <Button
+          variant="secondary"
+          className="flex-1 h-11 text-sm border border-border"
+          onClick={() => setShowStockGenerator(!showStockGenerator)}
+          data-testid="button-generate-stock"
+        >
+          <Sparkles className="w-4 h-4 mr-2" />
+          Generate
         </Button>
       </div>
+
+      {/* Stock Image Generator */}
+      <AnimatePresence>
+        {showStockGenerator && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="p-4 rounded-lg border border-border bg-card space-y-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium">AI Stock Image Generator</span>
+              </div>
+              <Textarea
+                placeholder={`Describe the image you want to generate... (leave empty for auto-generated prompt based on product)`}
+                value={stockPrompt}
+                onChange={(e) => setStockPrompt(e.target.value)}
+                className="min-h-[80px] text-sm resize-none"
+                disabled={isGenerating}
+              />
+              {generationError && (
+                <p className="text-xs text-destructive">{generationError}</p>
+              )}
+              <div className="flex gap-2">
+                <Button
+                  onClick={generateStockImage}
+                  disabled={isGenerating}
+                  className="flex-1"
+                  data-testid="button-generate-image"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Generate Image
+                    </>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowStockGenerator(false)}
+                  disabled={isGenerating}
+                >
+                  Cancel
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Uses AI to generate professional product images. Charges apply to your Replit credits.
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Drag and drop area */}
       <div 

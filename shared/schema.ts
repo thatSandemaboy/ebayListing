@@ -115,3 +115,6 @@ export const ebayTokens = pgTable("ebay_tokens", {
 });
 
 export type EbayToken = typeof ebayTokens.$inferSelect;
+
+// Re-export chat models for AI integrations
+export * from "./models/chat";

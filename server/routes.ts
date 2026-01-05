@@ -5,6 +5,7 @@ import { insertInventoryItemSchema, insertPhotoSchema, insertEbayListingSchema, 
 import { z } from "zod";
 import { fetchAllInventories, mapWholeCellToInventoryItem } from "./wholecell";
 import { getAuthorizationUrl, exchangeCodeForTokens, isConnectedToEbay, createInventoryItem, createOffer, getBusinessPolicies, getInventoryLocations, getRedirectUri } from "./ebay";
+import { registerImageRoutes } from "./replit_integrations/image";
 
 export async function registerRoutes(
   httpServer: Server,
@@ -531,6 +532,9 @@ export async function registerRoutes(
       res.status(500).json({ message: error.message });
     }
   });
+
+  // Register AI image generation routes
+  registerImageRoutes(app);
 
   return httpServer;
 }
